@@ -74,7 +74,7 @@ async function fetchTweet(id: string, token: string) {
 }
 
 export const newTwitterClient = (credentials: string): (id: string) => Promise<TwitterResponse> => {
-  const token = `Bearer: ${credentials}`
+  const token = `Bearer ${credentials}`
   const cache = new Cache(15 * 60)
 
   return async id => {
