@@ -114,7 +114,7 @@ export class Sauce<T extends SauceResultRaw = SauceResultRaw> implements BaseRes
   public constructor(public entry: SauceEntryRaw) {
     this.raw = entry.data as T
     switch (entry.header.index_id) {
-      case 44: {
+      case SauceDBIndex.Skeb: {
         const data = entry.data as SkebResultRaw
         this.urls = Object.values(data.ext_urls)
         this.creator = {
@@ -130,7 +130,7 @@ export class Sauce<T extends SauceResultRaw = SauceResultRaw> implements BaseRes
         }
         break
       }
-      case 34: {
+      case SauceDBIndex.DeviantArt: {
         const data = entry.data as DeviantArtResultRaw
         this.urls = Object.values(data.ext_urls)
         this.creator = {
@@ -146,7 +146,7 @@ export class Sauce<T extends SauceResultRaw = SauceResultRaw> implements BaseRes
         }
         break
       }
-      case 5: {
+      case SauceDBIndex.Pixiv: {
         const data = entry.data as PixivResultRaw
         this.urls = Object.values(data.ext_urls)
         this.creator = {
@@ -163,7 +163,7 @@ export class Sauce<T extends SauceResultRaw = SauceResultRaw> implements BaseRes
         }
         break
       }
-      case 21: {
+      case SauceDBIndex.Anime: {
         const data = entry.data as AnimeResultRaw
         this.urls = Object.values(data.ext_urls)
         const id = String(data.anidb_aid)
@@ -175,7 +175,7 @@ export class Sauce<T extends SauceResultRaw = SauceResultRaw> implements BaseRes
         }
         break
       }
-      case 40: {
+      case SauceDBIndex.FurAffinity: {
         const data = entry.data as FurAffinityResultRaw
         this.urls = Object.values(data.ext_urls)
         this.creator = {
@@ -191,7 +191,7 @@ export class Sauce<T extends SauceResultRaw = SauceResultRaw> implements BaseRes
         }
         break
       }
-      case 6: {
+      case SauceDBIndex.PixivHistorical: {
         const data = entry.data as PixivHistoricalResultRaw
         this.urls = Object.values(data.ext_urls)
         const creatorId = String(data.member_id)
@@ -209,7 +209,7 @@ export class Sauce<T extends SauceResultRaw = SauceResultRaw> implements BaseRes
         }
         break
       }
-      case 41: {
+      case SauceDBIndex.Twitter: {
         const data = entry.data as TwitterResultRaw
         this.urls = Object.values(data.ext_urls)
         this.creator = {
@@ -225,7 +225,7 @@ export class Sauce<T extends SauceResultRaw = SauceResultRaw> implements BaseRes
         }
         break
       }
-      case 38: {
+      case SauceDBIndex['H-Misc']: {
         const data = entry.data as HMiscResultRaw
         this.urls = []
         this.creator = {
@@ -241,7 +241,8 @@ export class Sauce<T extends SauceResultRaw = SauceResultRaw> implements BaseRes
         }
         break
       }
-      case 31: {
+      case SauceDBIndex['bcy.net Cosplay']:
+      case SauceDBIndex['bcy.net Illust']: {
         const data = entry.data as BcyNetResultRaw
         this.urls = Object.values(data.ext_urls)
         this.creator = {
@@ -257,7 +258,7 @@ export class Sauce<T extends SauceResultRaw = SauceResultRaw> implements BaseRes
         }
         break
       }
-      case 42: {
+      case SauceDBIndex['Furry Network']: {
         const data = entry.data as FurryNetworkResultRaw
         this.urls = Object.values(data.ext_urls)
         this.creator = {
@@ -273,7 +274,7 @@ export class Sauce<T extends SauceResultRaw = SauceResultRaw> implements BaseRes
         }
         break
       }
-      case 35: {
+      case SauceDBIndex.Pawoo: {
         const data = entry.data as PawooResultRaw
         this.urls = Object.values(data.ext_urls)
         const creatorId = `@${data.pawoo_user_acct}`
@@ -291,7 +292,7 @@ export class Sauce<T extends SauceResultRaw = SauceResultRaw> implements BaseRes
         }
         break
       }
-      case 8: {
+      case SauceDBIndex.NicoSeiga: {
         const data = entry.data as NicoSeigaResultRaw
         this.urls = Object.values(data.ext_urls)
         const creatorId = String(data.member_id)
@@ -306,6 +307,25 @@ export class Sauce<T extends SauceResultRaw = SauceResultRaw> implements BaseRes
           title: data.title,
           creator: this.creator,
           link: `https://seiga.nicovideo.jp/seiga/im${artworkId}`,
+        }
+        break
+      }
+      case SauceDBIndex.Danbooru: {
+        const data = entry.data as DanbooruResultRaw
+        this.urls = Object.values(data.ext_urls)
+        const artworkId = String(data.danbooru_id)
+        this.creator = {
+          id: data.creator,
+          name: data.creator,
+          link: `https://danbooru.donmai.us/posts?tags=${data.creator}&z=1`,
+        }
+        this.artwork = {
+          id: artworkId,
+          creator: this.creator,
+          link: `https://danbooru.donmai.us/post/show/${artworkId}`,
+          title: data.material
+            ? `${data.characters} (${data.material}) drawn by ${this.creator.name}`
+            : `${data.characters} drawn by ${this.creator.name}`,
         }
         break
       }
@@ -369,6 +389,7 @@ export type SauceResultRaw =
 | FurryNetworkResultRaw
 | PawooResultRaw
 | NicoSeigaResultRaw
+| DanbooruResultRaw
 
 /** index: 44 */
 export interface SkebResultRaw extends BaseResultRaw {
