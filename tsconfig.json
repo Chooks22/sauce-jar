@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "lib": [
+      "ESNext",
+      "DOM"
+    ],
+    "target": "ESNext",
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "strict": true,
+    "noEmit": true
+  },
+  "exclude": [
+    "dist",
+    "node_modules",
+    ".chooks"
+  ]
+}
