@@ -1,44 +1,23 @@
 import { defineSlashCommand } from 'chooksie'
-import { MessageEmbed } from 'discord.js'
 
 export default defineSlashCommand({
   name: 'sauce',
   description: 'Get sauce for a link.',
-  setup() {
-    return import('../lib/saucenao')
-  },
-  async execute({ logger, interaction }) {
+  setup: () => import('../lib/sauce'),
+  async execute({ interaction, client }) {
     const link = interaction.options.getString('link', true)
     const defer = interaction.deferReply()
 
-    const sauces = await this.getSauce(link)
-    const unparsed = sauces.filter(sauce => !sauce.isParsed())
+    const embeds = await this.fetchSauce(link)
+    await defer
 
-    if (unparsed.length > 0) {
-      logger.info('got unparsed')
-      unparsed.forEach(item => {
-        const data = JSON.stringify(item, null, 2)
-        console.log(data)
+    if (embeds.length > 0) {
+      await interaction.editReply({ embeds })
+    } else {
+      await interaction.editReply({
+        embeds: [this.noSauceEmbed(client)],
       })
     }
-
-    const data = sauces
-      .filter(sauce => sauce.isParsed() && sauce.similarity > 80)
-      .slice(0, 10)
-      .map(sauce => new MessageEmbed()
-        .setAuthor({
-          name: sauce.artwork.title ?? 'No title',
-        })
-        .setThumbnail(sauce.entry.header.thumbnail)
-        .setDescription(sauce.urls
-          .map(url => `[${new URL(url).host}](${url})`)
-          .join('\n'))
-        .setFooter({
-          text: `Similarity: ${sauce.similarity}\nPowered by SauceNAO.com`,
-        }))
-
-    await defer
-    await interaction.editReply({ embeds: data })
   },
   options: [
     {
