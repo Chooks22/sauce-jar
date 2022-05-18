@@ -62,7 +62,11 @@ export async function* pixiv(id: string): AsyncGenerator<MessageAttachment, Pixi
     const uri = `${url}_p${i}${ext}`
     const img = await getImg(uri)
     const name = basename(uri)
-    yield new MessageAttachment(img, name)
+
+    const attachment = new MessageAttachment(img, name)
+    attachment.size = img.byteLength
+
+    yield attachment
   }
 
   return body

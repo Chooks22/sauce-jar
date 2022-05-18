@@ -15,28 +15,40 @@ export default defineEvent({
     const createWebhook = async (message: Message) => {
       const channel = message.channel as TextChannel
       const author = message.author
-      console.log(`creating webhook with name: "${author.username}" and icon: "${author.displayAvatarURL()}"...`)
       const wh = await channel.createWebhook(author.username, {
         avatar: author.displayAvatarURL(),
       })
-      console.log('webhook created.')
 
-      return async (payload: string | WebhookMessageOptions) => {
+      const sendOnce = async (payload: string | WebhookMessageOptions) => {
         await wh.send(payload)
         await message.delete()
         await wh.delete()
       }
+
+      const send = async (payload: string | WebhookMessageOptions) => {
+        await wh.send(payload)
+      }
+
+      const destroy = async () => {
+        await message.delete()
+        await wh.delete()
+      }
+
+      return { sendOnce, send, destroy }
     }
 
     const handlePixiv = async (id: string) => {
       const px = pixiv(id)
-      let res = await px.next()
+      let result = await px.next()
+
+      let size = 0
+      const responses: WebhookMessageOptions[] = []
 
       const embeds: MessageEmbed[] = []
       const files: MessageAttachment[] = []
-      while (!res.done) {
-        const file = res.value
-        files.push(file)
+
+      while (!result.done) {
+        const file = result.value
 
         const embed = new MessageEmbed()
           .setColor('#0097fa')
@@ -47,12 +59,28 @@ export default defineEvent({
             text: 'Pixiv',
           })
 
+        if (size + file.size > 8 * 1024 * 1024) {
+          size = 0
+          responses.push({
+            embeds: embeds.splice(0),
+            files: files.splice(0),
+          })
+        }
+
         embeds.push(embed)
-        res = await px.next()
+        files.push(file)
+        size += file.size
+
+        result = await px.next()
       }
 
-      const { title, userId, userName, createDate } = res.value
-      embeds[0]
+      if (embeds.length > 0) {
+        responses.push({ embeds, files })
+      }
+
+      const { title, userId, userName, createDate } = result.value
+      const main = responses[0].embeds![0] as MessageEmbed
+      main
         .setURL(`https://www.pixiv.net/artworks/${id}`)
         .setAuthor({
           name: userName,
@@ -61,11 +89,13 @@ export default defineEvent({
         .setTitle(title)
 
       const createdAt = new Date(createDate)
-      embeds.forEach(embed => {
-        embed.setTimestamp(createdAt)
-      })
+      responses
+        .flatMap(res => res.embeds as MessageEmbed[])
+        .forEach(embed => {
+          embed.setTimestamp(createdAt)
+        })
 
-      return { embeds, files }
+      return responses
     }
 
     const handleTwitter = async (message: Message, id: string): Promise<string | WebhookMessageOptions | null> => {
@@ -117,9 +147,16 @@ export default defineEvent({
     const content = message.content
     if (content.includes('pixiv.net') && content.includes('artworks')) {
       const id = basename(content)
-      const { embeds, files } = await this.handlePixiv(id)
-      const send = await this.createWebhook(message)
-      await send({ content, embeds, files })
+      const [{ embeds, files }, ...rest] = await this.handlePixiv(id)
+
+      const wh = await this.createWebhook(message)
+      await wh.send({ content, embeds, files })
+
+      for (const res of rest) {
+        await wh.send(res)
+      }
+
+      await wh.destroy()
       return
     }
 
@@ -132,8 +169,8 @@ export default defineEvent({
       const data = await this.handleTwitter(msg, id)
 
       if (data !== null) {
-        const send = await this.createWebhook(message)
-        await send(data)
+        const wh = await this.createWebhook(message)
+        await wh.sendOnce(data)
       }
     }
   },
