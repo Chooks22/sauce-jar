@@ -10,7 +10,7 @@
     "register": "chooks register"
   },
   "dependencies": {
-    "chooksie": "^2.1.1",
+    "chooksie": "^2.1.2",
     "discord.js": "^13.6.0",
     "marked": "^4.0.16",
     "pixiv-web-api": "^0.1.5"

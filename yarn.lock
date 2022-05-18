@@ -883,9 +883,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"chooksie@npm:^2.1.1":
-  version: 2.1.1
-  resolution: "chooksie@npm:2.1.1"
+"chooksie@npm:^2.1.2":
+  version: 2.1.2
+  resolution: "chooksie@npm:2.1.2"
   dependencies:
     "@swc/helpers": ^0.3.6
     dotenv: ^16.0.0
@@ -893,7 +893,7 @@ __metadata:
   peerDependencies:
     discord.js: ^13.6.0
     undici: ^4.13.0
-  checksum: ceab1326d01a8ad20ffff2d69554cfa88fb3a0f05e28afc3300172865f102c8527942f1d0ce466987e631d2fa20ffb0f5112d3e6dbb9f0d0d4f5027beb199cd8
+  checksum: 5627ac972a640756e854efaf0972cc8eb21ff8deb1bffaea589cd2cb3a78fa6424fd043ab9796ded4933299011a0adc9bef9b17b1c10d121ce580fba3878b99e
   languageName: node
   linkType: hard
 
@@ -2643,7 +2643,7 @@ __metadata:
     "@types/node": ^17.0.31
     "@typescript-eslint/eslint-plugin": ^5.22.0
     "@typescript-eslint/parser": ^5.22.0
-    chooksie: ^2.1.1
+    chooksie: ^2.1.2
     discord.js: ^13.6.0
     eslint: ^8.14.0
     marked: ^4.0.16
