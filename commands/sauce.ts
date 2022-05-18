@@ -7,13 +7,21 @@ export default defineSlashCommand({
   setup() {
     return import('../lib/saucenao')
   },
-  async execute({ interaction }) {
+  async execute({ logger, interaction }) {
     const link = interaction.options.getString('link', true)
+    const defer = interaction.deferReply()
+
     const sauces = await this.getSauce(link)
     const unparsed = sauces.filter(sauce => !sauce.isParsed())
+
     if (unparsed.length > 0) {
-      console.log({ unparsed })
+      logger.info('got unparsed')
+      unparsed.forEach(item => {
+        const data = JSON.stringify(item, null, 2)
+        console.log(data)
+      })
     }
+
     const data = sauces
       .filter(sauce => sauce.isParsed() && sauce.similarity > 80)
       .slice(0, 10)
@@ -28,9 +36,9 @@ export default defineSlashCommand({
         .setFooter({
           text: `Similarity: ${sauce.similarity}\nPowered by SauceNAO.com`,
         }))
-    await interaction.reply({
-      embeds: data,
-    })
+
+    await defer
+    await interaction.editReply({ embeds: data })
   },
   options: [
     {
