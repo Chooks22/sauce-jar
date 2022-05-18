@@ -98,15 +98,7 @@ export default defineEvent({
       return responses
     }
 
-    const handleTwitter = async (message: Message, id: string): Promise<string | WebhookMessageOptions | null> => {
-      const content = message.content
-      if (message.embeds.length > 0) {
-        // replace links if one of them has the shitty twitter video player
-        return message.embeds.some(embed => embed.video !== null)
-          ? content.replaceAll('twitter.com', 'vxtwitter.com')
-          : null
-      }
-
+    const getTwitter = async (content: string, id: string) => {
       const res = await twitter(id)
       const embeds: MessageEmbed[] = []
       const { tweet, author } = res
@@ -137,6 +129,17 @@ export default defineEvent({
       return { content, embeds }
     }
 
+    const handleTwitter = (message: Message, id: string): Promise<WebhookMessageOptions> | string | null => {
+      const content = message.content
+      if (message.embeds.length > 0) {
+        // replace links if one of them has the shitty twitter video player
+        return message.embeds.some(embed => embed.video !== null)
+          ? content.replaceAll('twitter.com', 'vxtwitter.com')
+          : null
+      }
+      return getTwitter(content, id)
+    }
+
     return { createWebhook, handlePixiv, handleTwitter }
   },
   async execute(ctx, message) {
@@ -146,6 +149,7 @@ export default defineEvent({
 
     const content = message.content
     if (content.includes('pixiv.net') && content.includes('artworks')) {
+      await message.react('⌛')
       const id = basename(content)
       const [{ embeds, files }, ...rest] = await this.handlePixiv(id)
 
@@ -166,12 +170,16 @@ export default defineEvent({
 
       const id = matched[1]
       const msg = await message.fetch()
-      const data = await this.handleTwitter(msg, id)
+      const data = this.handleTwitter(msg, id)
 
-      if (data !== null) {
-        const wh = await this.createWebhook(message)
-        await wh.sendOnce(data)
+      if (data === null) {
+        return
+      } else if (typeof data !== 'string') {
+        await msg.react('⌛')
       }
+
+      const wh = await this.createWebhook(message)
+      await wh.sendOnce(await data)
     }
   },
 })
