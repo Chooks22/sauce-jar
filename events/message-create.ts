@@ -166,7 +166,8 @@ export default defineEvent({
 
     const matched = twitRe.exec(content)
     if (matched !== null) {
-      await sleep(500)
+      // discord could take time to get embed, wait longer
+      await sleep(750)
 
       const id = matched[1]
       const msg = await message.fetch()
