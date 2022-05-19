@@ -10,11 +10,11 @@
     "register": "chooks register"
   },
   "dependencies": {
-    "chooksie": "^2.1.2",
+    "chooksie": "^2.2.1",
     "discord.js": "^13.6.0"
   },
   "devDependencies": {
-    "@chookscord/cli": "^2.1.1",
+    "@chookscord/cli": "^2.2.0",
     "@chookslint/eslint-config-typescript": "^2.2.1",
     "@types/node": "^17.0.31",
     "@typescript-eslint/eslint-plugin": "^5.22.0",
