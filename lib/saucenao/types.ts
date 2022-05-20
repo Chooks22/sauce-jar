@@ -79,7 +79,8 @@ export enum SauceDBIndex {
   Nijie = 11,
   'Yande.re' = 12,
   Fakku = 16,
-  'H-Misc' = 18,
+  'H-Misc1' = 18,
+  'H-Misc2' = 38,
   '2D-Market' = 19,
   Anime = 21,
   'H-Anime' = 22,
@@ -110,9 +111,11 @@ export class Sauce<T extends SauceResultRaw = SauceResultRaw> implements BaseRes
   public artwork!: Artwork
   public index!: SauceDB
   public indexId!: SauceDBIndex
+  public similarity!: number
   public raw: T
   public constructor(public entry: SauceEntryRaw) {
     this.raw = entry.data as T
+    this.similarity = Number(entry.header.similarity)
     switch (entry.header.index_id) {
       case SauceDBIndex.Skeb: {
         const data = entry.data as SkebResultRaw
@@ -225,7 +228,8 @@ export class Sauce<T extends SauceResultRaw = SauceResultRaw> implements BaseRes
         }
         break
       }
-      case SauceDBIndex['H-Misc']: {
+      case SauceDBIndex['H-Misc1']:
+      case SauceDBIndex['H-Misc2']: {
         const data = entry.data as HMiscResultRaw
         this.urls = []
         this.creator = {
@@ -331,9 +335,6 @@ export class Sauce<T extends SauceResultRaw = SauceResultRaw> implements BaseRes
       }
     }
   }
-  public get similarity(): number {
-    return Number(this.entry.header.similarity)
-  }
   public isParsed(): boolean {
     return this.artwork !== undefined
   }
@@ -360,10 +361,17 @@ export class Sauce<T extends SauceResultRaw = SauceResultRaw> implements BaseRes
     return this.entry.header.index_id === SauceDBIndex.Twitter
   }
   public isHMisc(): this is Sauce<HMiscResultRaw> {
-    return this.entry.header.index_id === 38
+    return this.entry.header.index_id === SauceDBIndex['H-Misc1']
+        || this.entry.header.index_id === SauceDBIndex['H-Misc2']
+  }
+  public isBcyNetIllust(): this is Sauce<BcyNetResultRaw> {
+    return this.entry.header.index_id === SauceDBIndex['bcy.net Illust']
+  }
+  public isBcyNetCosplay(): this is Sauce<BcyNetResultRaw> {
+    return this.entry.header.index_id === SauceDBIndex['bcy.net Cosplay']
   }
   public isBcyNet(): this is Sauce<BcyNetResultRaw> {
-    return this.entry.header.index_id === 31
+    return this.isBcyNetIllust() || this.isBcyNetCosplay()
   }
   public isFurryNetwork(): this is Sauce<FurryNetworkResultRaw> {
     return this.entry.header.index_id === 42
@@ -466,7 +474,7 @@ export interface BcyNetResultRaw extends BaseResultRaw {
   member_name: string
   member_id: number
   member_link_id: number
-  bcy_type: 'illust'
+  bcy_type: 'illust' | 'cosplay'
 }
 
 /** index: 42 */
