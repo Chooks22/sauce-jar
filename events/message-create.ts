@@ -80,7 +80,7 @@ export default defineEvent({
         ]
 
         let embeds: MessageEmbed[] = []
-        let attachments: MessageAttachment[] = []
+        let files: MessageAttachment[] = []
 
         let size = 0
         let count = 0
@@ -89,18 +89,18 @@ export default defineEvent({
         // @todo: separate attachments to allow embedding using urls
         for await (const file of illusts) {
           if (count++ === 4 || size + file.size > SIZE_LIMIT) {
-            responses.push({ embeds, attachments })
+            responses.push({ embeds, files })
             embeds = []
-            attachments = []
+            files = []
           }
 
           size += file.size
           embeds.push(newEmbed(file))
-          attachments.push(file)
+          files.push(file)
         }
 
         if (embeds.length > 0) {
-          responses.push({ embeds, attachments })
+          responses.push({ embeds, files })
         }
 
         logger.info(`downloaded ${artwork.illust.pageCount} images`)
