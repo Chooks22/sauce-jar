@@ -1,13 +1,13 @@
 import { defineMessageCommand } from 'chooksie'
-import type { Collection, MessageAttachment } from 'discord.js'
+import type { Message } from 'discord.js'
 import { MessageEmbed } from 'discord.js'
 
 export default defineMessageCommand({
   name: 'Get Sauce',
   setup: () => import('../lib/sauce'),
   async execute({ interaction, client }) {
-    const message = interaction.targetMessage
-    const attachments = message.attachments as Collection<string, MessageAttachment>
+    const message = interaction.targetMessage as Message
+    const attachments = message.attachments
     const embeds = message.embeds
 
     const attachment = attachments.first()
@@ -32,14 +32,23 @@ export default defineMessageCommand({
       return
     }
 
-    const defer = interaction.deferReply()
+    const defer = interaction.deferReply({ ephemeral: true })
     const sauces = await this.fetchSauce(url)
     await defer
 
-    const res = sauces.length > 0
-      ? sauces
-      : [this.noSauceEmbed(client)]
-
-    await interaction.editReply({ embeds: res })
+    if (sauces.length === 0) {
+      await interaction.editReply({
+        embeds: [this.noSauceEmbed(client)],
+      })
+    } else {
+      await interaction.editReply(`Found ${sauces.length} sauce!`)
+      await message.reply({
+        content: `Sauce requested by: ${interaction.user}.`,
+        embeds: sauces,
+        allowedMentions: {
+          users: [],
+        },
+      })
+    }
   },
 })
