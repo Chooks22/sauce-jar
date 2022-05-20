@@ -3,7 +3,9 @@ declare namespace NodeJS {
     BOT_TOKEN: string
     SAUCE_KEY: string
     DEV_SERVER: string
-    OWNDER_ID: string
+    OWNER_ID: string
     TWITTER_TOKEN: string
+    PIXIV_ID: string
+    PIXIV_KEY: string
   }
 }

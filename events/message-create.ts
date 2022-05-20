@@ -1,7 +1,10 @@
+import type { Logger } from 'chooksie'
 import { defineEvent } from 'chooksie'
-import type { Message, MessageAttachment, TextChannel, WebhookMessageOptions } from 'discord.js'
-import { MessageEmbed } from 'discord.js'
-import { basename } from 'node:path'
+import type { Message, TextChannel, WebhookMessageOptions } from 'discord.js'
+import { MessageAttachment, MessageEmbed } from 'discord.js'
+import { mkdir, rm } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { basename, join } from 'node:path'
 import { setTimeout as sleep } from 'node:timers/promises'
 
 const twitRe = /https?:\/\/(?:mobile\.|www\.)?twitter\.com\/(\w{1,15}\/status)\/(\d+)(?:\?\S+)?/i
@@ -9,7 +12,7 @@ const twitRe = /https?:\/\/(?:mobile\.|www\.)?twitter\.com\/(\w{1,15}\/status)\/
 export default defineEvent({
   name: 'messageCreate',
   setup: async () => {
-    const { pixiv } = await import('../lib/pixiv')
+    const { getArtwork, downloadIllust, downloadUgoira } = await import('../lib/pixiv')
     const { default: twitter } = await import('../lib/twitter')
 
     const createWebhook = async (message: Message) => {
@@ -37,65 +40,83 @@ export default defineEvent({
       return { sendOnce, send, destroy }
     }
 
-    const handlePixiv = async (id: string) => {
-      const px = pixiv(id)
-      let result = await px.next()
+    const handlePixiv = async (id: string, logger: Logger): Promise<WebhookMessageOptions[]> => {
+      logger.info('getting artwork info...')
+      const artwork = await getArtwork(id)
+      const createdAt = new Date(artwork.illust.createDate)
+      logger.info(`got artwork type: ${artwork.type}`)
 
-      let size = 0
-      const responses: WebhookMessageOptions[] = []
+      if (artwork.type === 'illust') {
+        const SIZE_LIMIT = 8 * 1024 * 1024
 
-      const embeds: MessageEmbed[] = []
-      const files: MessageAttachment[] = []
-
-      while (!result.done) {
-        const file = result.value
-
-        const embed = new MessageEmbed()
+        const newEmbed = (file: MessageAttachment) => new MessageEmbed()
           .setColor('#0097fa')
           .setURL('https://www.twitter.com/')
           .setImage(`attachment://${file.name}`)
           .setFooter({
-            iconURL: 'https://www.pixiv.net/favicon.ico',
             text: 'Pixiv',
+            iconURL: 'https://www.pixiv.net/favicon.ico',
           })
+          .setTimestamp(createdAt)
 
-        if (size + file.size > 8 * 1024 * 1024) {
-          size = 0
-          responses.push({
-            embeds: embeds.splice(0),
-            files: files.splice(0),
+        logger.info('downloading images...')
+        const illusts = downloadIllust(artwork.illust)
+        const first = await illusts.next()
+
+        const attachment = first.value as MessageAttachment
+        const embed = newEmbed(attachment)
+          .setURL(`https://www.pixiv.net/artworks/${id}`)
+          .setAuthor({
+            name: artwork.illust.userName,
+            url: `https://www.pixiv.net/users/${artwork.illust.userId}`,
           })
+          .setTitle(artwork.illust.title)
+
+        const responses: WebhookMessageOptions[] = [
+          {
+            embeds: [embed],
+            files: [attachment],
+          },
+        ]
+
+        let embeds: MessageEmbed[] = []
+        let attachments: MessageAttachment[] = []
+
+        let size = 0
+        let count = 0
+
+        // @todo: large single file checking
+        // @todo: separate attachments to allow embedding using urls
+        for await (const file of illusts) {
+          if (count++ === 4 || size + file.size > SIZE_LIMIT) {
+            responses.push({ embeds, attachments })
+            embeds = []
+            attachments = []
+          }
+
+          size += file.size
+          embeds.push(newEmbed(file))
+          attachments.push(file)
         }
 
-        embeds.push(embed)
-        files.push(file)
-        size += file.size
+        if (embeds.length > 0) {
+          responses.push({ embeds, attachments })
+        }
 
-        result = await px.next()
+        logger.info(`downloaded ${artwork.illust.pageCount} images`)
+        return responses
       }
 
-      if (embeds.length > 0) {
-        responses.push({ embeds, files })
-      }
+      const outpath = join(tmpdir(), id)
+      await mkdir(outpath, { recursive: true })
 
-      const { title, userId, userName, createDate } = result.value
-      const main = responses[0].embeds![0] as MessageEmbed
-      main
-        .setURL(`https://www.pixiv.net/artworks/${id}`)
-        .setAuthor({
-          name: userName,
-          url: `https://www.pixiv.net/users/${userId}`,
-        })
-        .setTitle(title)
+      logger.info('downloading ugoira...')
+      const file = await downloadUgoira(id, artwork.meta, outpath)
+      const filename = basename(file)
 
-      const createdAt = new Date(createDate)
-      responses
-        .flatMap(res => res.embeds as MessageEmbed[])
-        .forEach(embed => {
-          embed.setTimestamp(createdAt)
-        })
-
-      return responses
+      logger.info('ugoira downloaded')
+      const attachment = new MessageAttachment(file, filename)
+      return [{ files: [attachment] }]
     }
 
     const getTwitter = async (content: string, id: string) => {
@@ -157,7 +178,7 @@ export default defineEvent({
     if (content.includes('pixiv.net') && content.includes('artworks')) {
       await message.react('⌛')
       const id = basename(content)
-      const [{ embeds, files }, ...rest] = await this.handlePixiv(id)
+      const [{ embeds, files }, ...rest] = await this.handlePixiv(id, ctx.logger)
 
       const wh = await this.createWebhook(message)
       await wh.send({ content, embeds, files })
@@ -187,6 +208,11 @@ export default defineEvent({
 
       const wh = await this.createWebhook(message)
       await wh.sendOnce(await data)
+
+      void rm(join(tmpdir(), id), {
+        recursive: true,
+        force: true,
+      })
     }
   },
 })
