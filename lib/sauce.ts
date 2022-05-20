@@ -15,8 +15,9 @@ export async function fetchSauce(link: string): Promise<MessageEmbed[]> {
   }
 
   const embeds = sauces
-    .filter(sauce => sauce.isParsed() && sauce.similarity > 80)
+    .filter(sauce => sauce.isParsed() && sauce.similarity > 60)
     .slice(0, 10)
+    .sort((a, b) => b.similarity - a.similarity)
     .map(sauce => new MessageEmbed()
       .setAuthor({
         name: sauce.artwork.title ?? 'No title',
@@ -27,7 +28,6 @@ export async function fetchSauce(link: string): Promise<MessageEmbed[]> {
         .join('\n'))
       .setFooter({
         text: `Similarity: ${sauce.similarity}`,
-        iconURL: 'https://saucenao.com/favicon.ico',
       }))
 
   return embeds
