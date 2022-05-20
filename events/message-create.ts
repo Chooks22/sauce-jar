@@ -4,7 +4,7 @@ import { MessageEmbed } from 'discord.js'
 import { basename } from 'node:path'
 import { setTimeout as sleep } from 'node:timers/promises'
 
-const twitRe = /https?:\/\/(?:mobile\.|www\.)?twitter\.com\/\w{1,15}\/status(?:es)?\/(\d+)/i
+const twitRe = /https?:\/\/(?:mobile\.|www\.)?twitter\.com\/(\w{1,15}\/status)\/(\d+)(?:\?\S+)?/i
 
 export default defineEvent({
   name: 'messageCreate',
@@ -103,6 +103,12 @@ export default defineEvent({
       const embeds: MessageEmbed[] = []
       const { tweet, author } = res
 
+      if (tweet.media.some(media => media.type === 'video')) {
+        return {
+          content: content.replace(twitRe, 'https://vxtwitter.com/$1/$2'),
+        }
+      }
+
       for (const media of tweet.media) {
         const embed = new MessageEmbed()
           .setURL('https://www.twitter.com/')
@@ -169,7 +175,7 @@ export default defineEvent({
       // discord could take time to get embed, wait longer
       await sleep(750)
 
-      const id = matched[1]
+      const id = matched[2]
       const msg = await message.fetch()
       const data = this.handleTwitter(msg, id)
 
