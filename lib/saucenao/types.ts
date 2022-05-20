@@ -428,38 +428,22 @@ export class Sauce<T extends SauceResultRaw = SauceResultRaw> implements BaseRes
 }
 
 export type SauceResultRaw =
-| SkebResultRaw
-| DeviantArtResultRaw
 | PixivResultRaw
-| AnimeResultRaw
-| FurAffinityResultRaw
 | PixivHistoricalResultRaw
-| TwitterResultRaw
-| HMiscResultRaw
-| BcyNetResultRaw
-| FurryNetworkResultRaw
-| PawooResultRaw
 | NicoSeigaResultRaw
 | DanbooruResultRaw
+| HMiscResultRaw
+| AnimeResultRaw
 | SankakuResultRaw
+| BcyNetResultRaw
+| DeviantArtResultRaw
+| PawooResultRaw
 | MadokamiResultRaw
+| FurAffinityResultRaw
+| TwitterResultRaw
+| FurryNetworkResultRaw
+| SkebResultRaw
 
-/** index: 44 */
-export interface SkebResultRaw extends BaseResultRaw {
-  path: string
-  creator: string
-  creator_name: string
-  author_name: string | null
-  author_url: string
-}
-
-/** index: 34 */
-export interface DeviantArtResultRaw extends BaseResultRaw {
-  title: string
-  da_id: string
-  author_name: string
-  author_url: string
-}
 
 /** index: 5 */
 export interface PixivResultRaw extends BaseResultRaw {
@@ -469,75 +453,12 @@ export interface PixivResultRaw extends BaseResultRaw {
   member_id: string
 }
 
-/** index: 21 */
-export interface AnimeResultRaw extends BaseResultRaw {
-  source: string
-  anidb_aid: number
-  mal_id: number
-  anilist_id: number
-  part: string
-  year: string
-  est_time: string
-}
-
-/** index: 40 */
-export interface FurAffinityResultRaw extends BaseResultRaw {
-  title: string
-  fa_id: number
-  author_name: string
-  author_url: string
-}
-
 /** index: 6 */
 export interface PixivHistoricalResultRaw extends BaseResultRaw {
   title: string
   pixiv_id: number
   member_name: string
   member_id: number
-}
-
-/** index: 41 */
-export interface TwitterResultRaw extends BaseResultRaw {
-  created_at: string
-  tweet_id: string
-  twitter_user_id: string
-  twitter_user_handle: string
-}
-
-/** index: 38 */
-export interface HMiscResultRaw {
-  source: string
-  creator: Record<number, string>
-  eng_name: string
-  jp_name: string
-}
-
-/** index: 31 */
-export interface BcyNetResultRaw extends BaseResultRaw {
-  title: string
-  bcy_id: number
-  member_name: string
-  member_id: number
-  member_link_id: number
-  bcy_type: 'illust' | 'cosplay'
-}
-
-/** index: 42 */
-export interface FurryNetworkResultRaw extends BaseResultRaw {
-  title: string
-  fn_id: number
-  fn_type: 'artwork'
-  author_name: string
-  author_url: string
-}
-
-/** index: 35 */
-export interface PawooResultRaw extends BaseResultRaw {
-  created_at: string
-  pawoo_id: number
-  pawoo_user_acct: string
-  pawoo_user_username: string
-  pawoo_user_display_name: string
 }
 
 /** index: 8 */
@@ -558,6 +479,25 @@ export interface DanbooruResultRaw extends BaseResultRaw {
   source: string
 }
 
+/** index: 11, 38 */
+export interface HMiscResultRaw {
+  source: string
+  creator: Record<number, string>
+  eng_name: string
+  jp_name: string
+}
+
+/** index: 21 */
+export interface AnimeResultRaw extends BaseResultRaw {
+  source: string
+  anidb_aid: number
+  mal_id: number
+  anilist_id: number
+  part: string
+  year: string
+  est_time: string
+}
+
 /** index: 27 */
 export interface SankakuResultRaw extends BaseResultRaw {
   sankaku_id: number
@@ -567,9 +507,71 @@ export interface SankakuResultRaw extends BaseResultRaw {
   source: string
 }
 
+/** index: 31, 32 */
+export interface BcyNetResultRaw extends BaseResultRaw {
+  title: string
+  bcy_id: number
+  member_name: string
+  member_id: number
+  member_link_id: number
+  bcy_type: 'illust' | 'cosplay'
+}
+
+/** index: 34 */
+export interface DeviantArtResultRaw extends BaseResultRaw {
+  title: string
+  da_id: string
+  author_name: string
+  author_url: string
+}
+
+/** index: 35 */
+export interface PawooResultRaw extends BaseResultRaw {
+  created_at: string
+  pawoo_id: number
+  pawoo_user_acct: string
+  pawoo_user_username: string
+  pawoo_user_display_name: string
+}
+
+/** index: 36 */
 export interface MadokamiResultRaw extends BaseResultRaw {
   mu_id: number
   source: string
   part: string
   type: string
+}
+
+/** index: 40 */
+export interface FurAffinityResultRaw extends BaseResultRaw {
+  title: string
+  fa_id: number
+  author_name: string
+  author_url: string
+}
+
+/** index: 41 */
+export interface TwitterResultRaw extends BaseResultRaw {
+  created_at: string
+  tweet_id: string
+  twitter_user_id: string
+  twitter_user_handle: string
+}
+
+/** index: 42 */
+export interface FurryNetworkResultRaw extends BaseResultRaw {
+  title: string
+  fn_id: number
+  fn_type: 'artwork'
+  author_name: string
+  author_url: string
+}
+
+/** index: 44 */
+export interface SkebResultRaw extends BaseResultRaw {
+  path: string
+  creator: string
+  creator_name: string
+  author_name: string | null
+  author_url: string
 }
