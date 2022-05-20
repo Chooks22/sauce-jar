@@ -333,6 +333,43 @@ export class Sauce<T extends SauceResultRaw = SauceResultRaw> implements BaseRes
         }
         break
       }
+      case SauceDBIndex['Sankaku Channel']: {
+        const data = entry.data as SankakuResultRaw
+        this.urls = Object.values(data.ext_urls)
+        const artworkId = String(data.sankaku_id)
+        this.creator = {
+          id: data.creator,
+          name: data.creator,
+          link: `https://chan.sankakucomplex.com/?tags=${data.creator}`,
+        }
+        this.artwork = {
+          id: artworkId,
+          creator: this.creator,
+          title: [data.material, data.characters, data.creator]
+            .filter(Boolean)
+            .join(', '),
+          link: `https://chan.sankakucomplex.com/post/show/${artworkId}`,
+        }
+        break
+      }
+      case SauceDBIndex.Madokami: {
+        const data = entry.data as MadokamiResultRaw
+        this.urls = Object.values(data.ext_urls)
+        const artworkId = String(data.mu_id)
+        const link = `https://www.mangaupdates.com/series.html?id=${artworkId}`
+        this.creator = {
+          id: data.source,
+          name: data.source,
+          link,
+        }
+        this.artwork = {
+          id: artworkId,
+          title: data.source,
+          creator: this.creator,
+          link,
+        }
+        break
+      }
     }
   }
   public isParsed(): boolean {
@@ -374,13 +411,19 @@ export class Sauce<T extends SauceResultRaw = SauceResultRaw> implements BaseRes
     return this.isBcyNetIllust() || this.isBcyNetCosplay()
   }
   public isFurryNetwork(): this is Sauce<FurryNetworkResultRaw> {
-    return this.entry.header.index_id === 42
+    return this.entry.header.index_id === SauceDBIndex['Furry Network']
   }
   public isPawoo(): this is Sauce<PawooResultRaw> {
-    return this.entry.header.index_id === 35
+    return this.entry.header.index_id === SauceDBIndex.Pawoo
   }
   public isNicoSeiga(): this is Sauce<NicoSeigaResultRaw> {
-    return this.entry.header.index_id === 8
+    return this.entry.header.index_id === SauceDBIndex.NicoSeiga
+  }
+  public isSankaku(): this is Sauce<SankakuResultRaw> {
+    return this.entry.header.index_id === SauceDBIndex['Sankaku Channel']
+  }
+  public isMadokami(): this is Sauce<MadokamiResultRaw> {
+    return this.entry.header.index_id === SauceDBIndex.Madokami
   }
 }
 
@@ -398,6 +441,8 @@ export type SauceResultRaw =
 | PawooResultRaw
 | NicoSeigaResultRaw
 | DanbooruResultRaw
+| SankakuResultRaw
+| MadokamiResultRaw
 
 /** index: 44 */
 export interface SkebResultRaw extends BaseResultRaw {
@@ -511,4 +556,20 @@ export interface DanbooruResultRaw extends BaseResultRaw {
   material: string
   characters: string
   source: string
+}
+
+/** index: 27 */
+export interface SankakuResultRaw extends BaseResultRaw {
+  sankaku_id: number
+  creator: string
+  material: string
+  characters: string
+  source: string
+}
+
+export interface MadokamiResultRaw extends BaseResultRaw {
+  mu_id: number
+  source: string
+  part: string
+  type: string
 }
