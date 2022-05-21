@@ -333,6 +333,43 @@ export class Sauce<T extends SauceResultRaw = SauceResultRaw> implements BaseRes
         }
         break
       }
+      case SauceDBIndex.Nijie: {
+        const data = entry.data as NijieResultRaw
+        this.urls = Object.values(data.ext_urls)
+        const creatorId = String(data.member_id)
+        const artworkId = String(data.nijie_id)
+        this.creator = {
+          id: artworkId,
+          name: data.member_name,
+          link: `https://nijie.info/members.php?id=${creatorId}`,
+        }
+        this.artwork = {
+          id: artworkId,
+          creator: this.creator,
+          title: data.title,
+          link: `https://nijie.info/view.php?id=${artworkId}`,
+        }
+        break
+      }
+      case SauceDBIndex['Yande.re']: {
+        const data = entry.data as YandereResultRaw
+        this.urls = Object.values(data.ext_urls)
+        const artworkId = String(data.yandere_id)
+        this.creator = {
+          id: data.creator,
+          name: data.creator,
+          link: `https://yande.re/post?tags=${data.creator}`,
+        }
+        this.artwork = {
+          id: artworkId,
+          creator: this.creator,
+          title: [data.creator, data.material, data.characters]
+            .filter(Boolean)
+            .join(' '),
+          link: `https://yande.re/post/show/${artworkId}`,
+        }
+        break
+      }
       case SauceDBIndex['Sankaku Channel']: {
         const data = entry.data as SankakuResultRaw
         this.urls = Object.values(data.ext_urls)
@@ -432,6 +469,7 @@ export type SauceResultRaw =
 | PixivHistoricalResultRaw
 | NicoSeigaResultRaw
 | DanbooruResultRaw
+| NijieResultRaw
 | HMiscResultRaw
 | AnimeResultRaw
 | SankakuResultRaw
@@ -479,7 +517,26 @@ export interface DanbooruResultRaw extends BaseResultRaw {
   source: string
 }
 
-/** index: 11, 38 */
+/** index: 11 */
+export interface NijieResultRaw extends BaseResultRaw {
+  title: string
+  nijie_id: string
+  member_name: string
+  member_id: string
+}
+
+/** index: 12 */
+export interface YandereResultRaw extends BaseResultRaw {
+  danbooru_id: number
+  yandere_id: number
+  gelbooru_id: number
+  creator: string
+  material: string
+  characters: string
+  source: string
+}
+
+/** index: 18, 38 */
 export interface HMiscResultRaw {
   source: string
   creator: Record<number, string>
