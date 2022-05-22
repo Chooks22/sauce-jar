@@ -169,14 +169,16 @@ export default defineEvent({
       return getTwitter(content, id)
     }
 
-    const deleteButton = new MessageButton()
-      .setCustomId('msg-delete')
-      .setEmoji('🗑️')
-      .setStyle('DANGER')
+    const deleteButton = (userId: string) => {
+      const button = new MessageButton()
+        .setCustomId(`msg-delete:${userId}`)
+        .setEmoji('🗑️')
+        .setStyle('DANGER')
 
-    const components = [new MessageActionRow().addComponents(deleteButton)]
+      return [new MessageActionRow().addComponents(button)]
+    }
 
-    return { createWebhook, handlePixiv, handleTwitter, components }
+    return { createWebhook, handlePixiv, handleTwitter, deleteButton }
   },
   async execute(ctx, message) {
     if (message.author.bot || message.webhookId) {
@@ -190,7 +192,7 @@ export default defineEvent({
       const [{ embeds, files }, ...rest] = await this.handlePixiv(id, ctx.logger)
 
       const wh = await this.createWebhook(message)
-      await wh.send({ content, embeds, files, components: this.components })
+      await wh.send({ content, embeds, files, components: this.deleteButton(message.author.id) })
 
       for (const res of rest) {
         await wh.send(res)
@@ -223,13 +225,13 @@ export default defineEvent({
       if (typeof data === 'string') {
         await wh.sendOnce({
           content: data,
-          components: this.components,
+          components: this.deleteButton(message.author.id),
         })
       } else {
         await msg.react('⌛')
         await wh.sendOnce({
           ...await data,
-          components: this.components,
+          components: this.deleteButton(message.author.id),
         })
       }
     }

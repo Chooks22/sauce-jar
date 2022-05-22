@@ -4,12 +4,20 @@ import { Message } from 'discord.js'
 
 export default {
   customId: 'msg-delete',
-  async execute(ctx: CommandContext<ButtonInteraction>): Promise<void> {
+  async execute(ctx: CommandContext<ButtonInteraction>, userId?: string): Promise<void> {
+    let message = ctx.interaction.message
+
+    if (ctx.interaction.user.id !== userId) {
+      await ctx.interaction.reply({
+        content: 'You can only delete messages you sent!',
+        ephemeral: true,
+      })
+      return
+    }
+
     const defer = ctx.interaction.deferReply({
       ephemeral: true,
     })
-
-    let message = ctx.interaction.message
 
     if (!(message instanceof Message)) {
       const channel = await ctx.client.channels.fetch(message.channel_id) as TextChannel
