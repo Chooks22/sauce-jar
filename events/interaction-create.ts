@@ -6,7 +6,7 @@ import type { Awaitable, ButtonInteraction } from 'discord.js'
 export default defineEvent({
   name: 'interactionCreate',
   async setup() {
-    const store = new Map<string, (ctx: CommandContext<ButtonInteraction>, payload: string) => Awaitable<void>>()
+    const store = new Map<string, (ctx: CommandContext<ButtonInteraction>, payload: string | null) => Awaitable<void>>()
     const { default: mod } = await import('../buttons/delete')
 
     store.set(mod.customId, (ctx, payload) => mod.execute(ctx, payload))
@@ -18,7 +18,17 @@ export default defineEvent({
       return
     }
 
-    const [key, payload] = interaction.customId.split(':')
+    let key: string
+    let payload: string | null = null
+
+    const sep = interaction.customId.indexOf(':')
+    if (sep > -1) {
+      key = interaction.customId.slice(0, sep)
+      payload = interaction.customId.slice(sep + 1)
+    } else {
+      key = interaction.customId
+    }
+
     if (!this.has(key)) {
       return
     }
