@@ -22,19 +22,21 @@ export default defineEvent({
         avatar: author.displayAvatarURL(),
       })
 
+      const destroy = async () => {
+        try {
+          await message.delete()
+        } finally {
+          await wh.delete()
+        }
+      }
+
       const sendOnce = async (payload: string | WebhookMessageOptions) => {
         await wh.send(payload)
-        await message.delete()
-        await wh.delete()
+        await destroy()
       }
 
       const send = async (payload: string | WebhookMessageOptions) => {
         await wh.send(payload)
-      }
-
-      const destroy = async () => {
-        await message.delete()
-        await wh.delete()
       }
 
       return { sendOnce, send, destroy }
