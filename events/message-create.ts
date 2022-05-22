@@ -1,7 +1,7 @@
 import type { Logger } from 'chooksie'
 import { defineEvent } from 'chooksie'
 import type { Message, TextChannel, WebhookMessageOptions } from 'discord.js'
-import { MessageAttachment, MessageEmbed } from 'discord.js'
+import { MessageActionRow, MessageAttachment, MessageButton, MessageEmbed } from 'discord.js'
 import { mkdir, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { basename, join } from 'node:path'
@@ -167,7 +167,14 @@ export default defineEvent({
       return getTwitter(content, id)
     }
 
-    return { createWebhook, handlePixiv, handleTwitter }
+    const deleteButton = new MessageButton()
+      .setCustomId('msg-delete')
+      .setEmoji('🗑️')
+      .setStyle('DANGER')
+
+    const components = [new MessageActionRow().addComponents(deleteButton)]
+
+    return { createWebhook, handlePixiv, handleTwitter, components }
   },
   async execute(ctx, message) {
     if (message.author.bot || message.webhookId) {
@@ -181,11 +188,16 @@ export default defineEvent({
       const [{ embeds, files }, ...rest] = await this.handlePixiv(id, ctx.logger)
 
       const wh = await this.createWebhook(message)
-      await wh.send({ content, embeds, files })
+      await wh.send({ content, embeds, files, components: this.components })
 
       for (const res of rest) {
         await wh.send(res)
       }
+
+      void rm(join(tmpdir(), id), {
+        recursive: true,
+        force: true,
+      })
 
       await wh.destroy()
       return
@@ -202,17 +214,22 @@ export default defineEvent({
 
       if (data === null) {
         return
-      } else if (typeof data !== 'string') {
-        await msg.react('⌛')
       }
 
       const wh = await this.createWebhook(message)
-      await wh.sendOnce(await data)
 
-      void rm(join(tmpdir(), id), {
-        recursive: true,
-        force: true,
-      })
+      if (typeof data === 'string') {
+        await wh.sendOnce({
+          content: data,
+          components: this.components,
+        })
+      } else {
+        await msg.react('⌛')
+        await wh.sendOnce({
+          ...await data,
+          components: this.components,
+        })
+      }
     }
   },
 })
