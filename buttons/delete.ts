@@ -4,8 +4,8 @@ import { Message } from 'discord.js'
 
 export default {
   customId: 'msg-delete',
-  async execute(ctx: CommandContext<ButtonInteraction>, userId?: string): Promise<void> {
-    let message = ctx.interaction.message
+  async execute(ctx: CommandContext<ButtonInteraction>, userId: string | null): Promise<void> {
+    const message = ctx.interaction.message
 
     if (ctx.interaction.user.id !== userId) {
       await ctx.interaction.reply({
@@ -19,18 +19,26 @@ export default {
       ephemeral: true,
     })
 
-    if (!(message instanceof Message)) {
-      const channel = await ctx.client.channels.fetch(message.channel_id) as TextChannel
-      if (!channel) {
-        await defer
-        await ctx.interaction.editReply('Channel does not exist!')
-        return
-      }
-
-      message = await channel.messages.fetch(message.id)
+    let chan: TextChannel
+    if (message instanceof Message) {
+      chan = message.channel as TextChannel
+    } else {
+      chan = await ctx.client.channels.fetch(message.channel_id) as TextChannel
     }
 
-    await message.delete()
+    if (!chan) {
+      await defer
+      await ctx.interaction.editReply('Channel does not exist!')
+      return
+    }
+
+    let messages = await chan.messages.fetch({
+      after: message.id,
+    })
+
+    messages = messages.filter(msg => msg.author.id === message.author.id)
+    await chan.bulkDelete([...messages.toJSON(), message.id])
+
     await defer
     await ctx.interaction.editReply('Message deleted.')
   },
