@@ -41,7 +41,7 @@ A feature-packed Discord bot for artwork related operations.
 # create a production build
 > yarn build
 
-# register newly created commands (if applicated)
+# register newly created commands (if applicable)
 > yarn register
 
 # start bot in production mode
