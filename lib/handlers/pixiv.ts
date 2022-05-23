@@ -8,19 +8,16 @@ import type { Artwork } from '../pixiv'
 import { processUgoira } from '../pixiv'
 import { downloadIllust, downloadUgoira, getArtwork } from '../pixiv'
 import { createWebhook, deleteButton, getUploadLimit, row } from '../utils'
-import { tests } from './consts'
 
-const newPixivEmbed = (file: MessageAttachment, createdAt: Date) => {
-  return new MessageEmbed()
-    .setColor('#0097fa')
-    .setURL('https://www.twitter.com/')
-    .setImage(`attachment://${file.name}`)
-    .setFooter({
-      text: 'Pixiv',
-      iconURL: 'https://www.pixiv.net/favicon.ico',
-    })
-    .setTimestamp(createdAt)
-}
+const newPixivEmbed = (file: MessageAttachment, createdAt: Date) => new MessageEmbed()
+  .setColor('#0097fa')
+  .setURL('https://www.twitter.com/')
+  .setImage(`attachment://${file.name}`)
+  .setFooter({
+    text: 'Pixiv',
+    iconURL: 'https://www.pixiv.net/favicon.ico',
+  })
+  .setTimestamp(createdAt)
 
 function* getPixivIds(content: string): Generator<string> {
   for (const matched of content.matchAll(tests.pixiv)) {
