@@ -5,8 +5,7 @@ import { mkdir } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { basename, join } from 'node:path'
 import type { Artwork } from '../pixiv'
-import { processUgoira } from '../pixiv'
-import { downloadIllust, downloadUgoira, getArtwork } from '../pixiv'
+import { downloadIllust, downloadUgoira, getArtwork, processUgoira } from '../pixiv'
 import { createWebhook, deleteButton, getUploadLimit, row } from '../utils'
 
 const newPixivEmbed = (file: MessageAttachment, createdAt: Date) => new MessageEmbed()
@@ -20,7 +19,8 @@ const newPixivEmbed = (file: MessageAttachment, createdAt: Date) => new MessageE
   .setTimestamp(createdAt)
 
 function* getPixivIds(content: string): Generator<string> {
-  for (const matched of content.matchAll(tests.pixiv)) {
+  const re = /https?:\/\/(?:www\.)?pixiv\.net\/(?:en\/)?artworks\/(\d+)(?:\?\S+)?/gi
+  for (const matched of content.matchAll(re)) {
     yield matched[1]
   }
 }
