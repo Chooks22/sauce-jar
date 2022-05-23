@@ -4,7 +4,7 @@ import { MessageAttachment, MessageEmbed } from 'discord.js'
 import { mkdir } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { basename, join } from 'node:path'
-import type { Artwork } from '../pixiv'
+import type { IllustArtwork, UgoiraArtwork } from '../pixiv'
 import { downloadIllust, downloadUgoira, getArtwork, processUgoira } from '../pixiv'
 import { createWebhook, deleteButton, getUploadLimit, row } from '../utils'
 
@@ -25,7 +25,7 @@ function* getPixivIds(content: string): Generator<string> {
   }
 }
 
-async function* illustToEmbeds(artwork: Artwork, sizeLimit: number): AsyncGenerator<WebhookMessageOptions> {
+async function* illustToEmbeds(artwork: IllustArtwork, sizeLimit: number): AsyncGenerator<WebhookMessageOptions> {
   const downloads = downloadIllust(artwork.illust)
   const createdAt = new Date(artwork.illust.createDate)
 
@@ -67,54 +67,66 @@ async function* illustToEmbeds(artwork: Artwork, sizeLimit: number): AsyncGenera
   }
 }
 
+async function ugoiraToEmbed(artwork: UgoiraArtwork, logger: Logger) {
+  const id = artwork.illust.id
+
+  logger.info('downloading ugoira...')
+  const outpath = join(tmpdir(), id)
+  await mkdir(outpath, { recursive: true })
+  const output = await downloadUgoira(id, artwork.meta, outpath)
+
+  logger.info('processing ugoira...')
+  const file = await processUgoira(id, output, outpath)
+  const filename = basename(file)
+  logger.info('finished processing ugoira')
+
+  return new MessageAttachment(file, filename)
+}
+
+async function* processPixiv(id: string, sizeLimit: number, logger: Logger): AsyncGenerator<WebhookMessageOptions> {
+  logger.info('getting artwork info...')
+  const artwork = await getArtwork(id)
+
+  if (artwork.type === 'illust') {
+    logger.info('got illust artwork')
+    yield* illustToEmbeds(artwork, sizeLimit)
+  }
+
+  if (artwork.type === 'ugoira') {
+    logger.info('got ugoira artwork')
+    const ugoira = await ugoiraToEmbed(artwork, logger)
+    yield { files: [ugoira] }
+  }
+}
+
 export default async function handlePixiv(message: Message, logger: Logger): Promise<void> {
   await message.react('⌛')
   const wh = await createWebhook(message)
   const components = [row(deleteButton(message.author.id))]
+  const sizeLimit = getUploadLimit(message.guild)
 
-  for (const id of getPixivIds(message.content)) {
-    logger.info('getting artwork info...')
-    const artwork = await getArtwork(id)
-    logger.info(`got artwork type: ${artwork.type}`)
-
-    if (artwork.type === 'illust') {
-      logger.info(`downloading ${artwork.illust.pageCount} illusts...`)
-      const responses = illustToEmbeds(artwork, getUploadLimit(message.guild))
-
-      // @todo: continue download while uploading message
-      await wh.send({
-        ...await responses.next(),
-        content: message.content,
-        components,
-      })
-
-      for await (const response of responses) {
-        await wh.send(response)
-      }
-
-      logger.info('finished downloading illusts')
+  const ids = getPixivIds(message.content)
+  const sendResponses = async (responses: AsyncGenerator<WebhookMessageOptions>) => {
+    // @todo: continue download while uploading message
+    for await (const response of responses) {
+      await wh.send(response)
     }
+  }
 
-    if (artwork.type === 'ugoira') {
-      const outpath = join(tmpdir(), artwork.illust.id)
-      await mkdir(outpath, { recursive: true })
+  const firstId = ids.next().value as string
+  const responses = processPixiv(firstId, sizeLimit, logger)
+  const first = await responses.next()
 
-      logger.info('downloading ugoira...')
-      const downloadPath = await downloadUgoira(artwork.illust.id, artwork.meta, outpath)
+  await wh.send({
+    ...first.value as WebhookMessageOptions,
+    content: message.content,
+    components,
+  })
 
-      logger.info('processing ugoira...')
-      const file = await processUgoira(artwork.illust.id, downloadPath, outpath)
-      logger.info('finished processing ugoira')
+  await sendResponses(responses)
 
-      const filename = basename(file)
-      const attachment = new MessageAttachment(file, filename)
-
-      await wh.send({
-        content: message.content,
-        files: [attachment],
-        components,
-      })
-    }
+  for (const id of ids) {
+    await sendResponses(processPixiv(id, sizeLimit, logger))
   }
 
   await wh.destroy()
