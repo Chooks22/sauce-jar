@@ -1,4 +1,6 @@
-import type { Guild, Message, PremiumTier, TextChannel, WebhookMessageOptions } from 'discord.js'
+import type { Guild, Message, MessageActionRowComponentResolvable, PremiumTier, TextChannel, WebhookMessageOptions } from 'discord.js'
+import { MessageButton } from 'discord.js'
+import { MessageActionRow, MessageComponentTypeResolvable } from 'discord.js'
 const MB = 1024 * 1024
 
 const UPLOAD_LIMITS: Record<PremiumTier, number> = {
@@ -46,4 +48,15 @@ export async function createWebhook(message: Message): Promise<WebhookHandler> {
   }
 
   return { sendOnce, send, destroy }
+}
+
+export function deleteButton(authorId: string): MessageButton {
+  return new MessageButton()
+    .setCustomId(`msg-delete:${authorId}`)
+    .setEmoji('🗑️')
+    .setStyle('DANGER')
+}
+
+export function row(...components: MessageActionRowComponentResolvable[]): MessageActionRow {
+  return new MessageActionRow().addComponents(...components)
 }

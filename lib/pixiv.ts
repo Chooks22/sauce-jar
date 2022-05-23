@@ -9,7 +9,7 @@ import { Open } from 'unzipper'
 
 const cpuCount = cpus().length
 
-interface IllustUrls {
+export interface IllustUrls {
   mini: string
   thumb: string
   small: string
@@ -17,7 +17,7 @@ interface IllustUrls {
   original: string
 }
 
-interface IllustDetails {
+export interface IllustDetails {
   pageCount: number
   urls: IllustUrls
   id: string
@@ -34,12 +34,12 @@ interface IllustDetails {
   viewCount: number
 }
 
-interface UgoiraFrame {
+export interface UgoiraFrame {
   file: string
   delay: number
 }
 
-interface UgoiraMeta {
+export interface UgoiraMeta {
   src: string
   originalSrc: string
   mime_type: string
