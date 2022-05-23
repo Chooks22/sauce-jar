@@ -1,6 +1,6 @@
 import type { Logger } from 'chooksie'
 import { defineEvent } from 'chooksie'
-import type { Message, TextChannel, WebhookMessageOptions } from 'discord.js'
+import type { Guild, Message, TextChannel, WebhookMessageOptions } from 'discord.js'
 import { MessageActionRow, MessageAttachment, MessageButton, MessageEmbed } from 'discord.js'
 import { mkdir, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
@@ -14,6 +14,7 @@ export default defineEvent({
   setup: async () => {
     const { getArtwork, downloadIllust, downloadUgoira } = await import('../lib/pixiv')
     const { default: twitter } = await import('../lib/twitter')
+    const { getUploadLimit } = await import('../lib/utils')
 
     const createWebhook = async (message: Message) => {
       const channel = message.channel as TextChannel
@@ -42,14 +43,14 @@ export default defineEvent({
       return { sendOnce, send, destroy }
     }
 
-    const handlePixiv = async (id: string, logger: Logger): Promise<WebhookMessageOptions[]> => {
+    const handlePixiv = async (id: string, guild: Guild | null, logger: Logger): Promise<WebhookMessageOptions[]> => {
       logger.info('getting artwork info...')
       const artwork = await getArtwork(id)
       const createdAt = new Date(artwork.illust.createDate)
       logger.info(`got artwork type: ${artwork.type}`)
 
       if (artwork.type === 'illust') {
-        const SIZE_LIMIT = 8 * 1024 * 1024
+        const SIZE_LIMIT = getUploadLimit(guild)
 
         const newEmbed = (file: MessageAttachment) => new MessageEmbed()
           .setColor('#0097fa')
@@ -189,7 +190,7 @@ export default defineEvent({
     if (content.includes('pixiv.net') && content.includes('artworks')) {
       await message.react('⌛')
       const id = basename(content)
-      const [{ embeds, files }, ...rest] = await this.handlePixiv(id, ctx.logger)
+      const [{ embeds, files }, ...rest] = await this.handlePixiv(id, message.guild, ctx.logger)
 
       const wh = await this.createWebhook(message)
       await wh.send({ content, embeds, files, components: this.deleteButton(message.author.id) })
