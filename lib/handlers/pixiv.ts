@@ -5,6 +5,7 @@ import { mkdir } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { basename, join } from 'node:path'
 import type { Artwork } from '../pixiv'
+import { processUgoira } from '../pixiv'
 import { downloadIllust, downloadUgoira, getArtwork } from '../pixiv'
 import { createWebhook, deleteButton, getUploadLimit, row } from '../utils'
 import { tests } from './consts'
@@ -93,24 +94,29 @@ export default async function handlePixiv(message: Message, logger: Logger): Pro
       for await (const response of responses) {
         await wh.send(response)
       }
+
       logger.info('finished downloading illusts')
     }
 
     if (artwork.type === 'ugoira') {
-      logger.info('downloading ugoira...')
       const outpath = join(tmpdir(), artwork.illust.id)
       await mkdir(outpath, { recursive: true })
 
-      const file = await downloadUgoira(artwork.illust.id, artwork.meta, outpath)
-      const filename = basename(file)
+      logger.info('downloading ugoira...')
+      const downloadPath = await downloadUgoira(artwork.illust.id, artwork.meta, outpath)
 
+      logger.info('processing ugoira...')
+      const file = await processUgoira(artwork.illust.id, downloadPath, outpath)
+      logger.info('finished processing ugoira')
+
+      const filename = basename(file)
       const attachment = new MessageAttachment(file, filename)
+
       await wh.send({
         content: message.content,
         files: [attachment],
         components,
       })
-      logger.info('finished downloading ugoira')
     }
   }
 

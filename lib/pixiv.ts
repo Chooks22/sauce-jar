@@ -131,14 +131,20 @@ async function downloadUgoira(id: string, ugoira: UgoiraMeta, outpath: string): 
   const gallery = await Open.buffer(zip)
   await gallery.extract({ path: tmp, concurrency: cpuCount })
 
-  const ffmpeg = exec('ffmpeg -y -i ffconcat.txt ../output.mp4', {
-    cwd: tmp,
+  return tmp
+}
+
+async function processUgoira(id: string, inpath: string, outpath: string): Promise<string> {
+  const filepath = join(outpath, `${id}.mp4`)
+  const ffmpeg = exec(`ffmpeg -y -i ffconcat.txt ${filepath}`, {
+    cwd: inpath,
   })
 
+  // @todo: progress tracking
   await once(ffmpeg, 'close')
-  void rm(tmp, { recursive: true })
+  void rm(inpath, { recursive: true })
 
-  return join(outpath, 'output.mp4')
+  return filepath
 }
 
 async function getImg(url: string) {
@@ -168,4 +174,4 @@ async function* downloadIllust(illust: IllustDetails): AsyncGenerator<MessageAtt
   }
 }
 
-export { getArtwork, downloadUgoira, downloadIllust }
+export { getArtwork, downloadUgoira, processUgoira, downloadIllust }
