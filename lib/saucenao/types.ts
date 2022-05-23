@@ -1,4 +1,5 @@
 import { basename } from 'node:path'
+import { escape } from 'node:querystring'
 
 export interface SauceResponse {
   header: SauceHeader
@@ -407,6 +408,162 @@ export class Sauce<T extends SauceResultRaw = SauceResultRaw> implements BaseRes
         }
         break
       }
+      case SauceDBIndex.MangaDex: {
+        const data = entry.data as MangaDexResultRaw
+        this.urls = Object.values(data.ext_urls)
+        this.creator = {
+          id: data.author,
+          name: data.author,
+          link: `https://mangadex.org/search?tab=authors&q=${data.author.replaceAll(' ', '+')}`,
+        }
+        this.artwork = {
+          id: data.md_id,
+          creator: this.creator,
+          title: data.source + data.part,
+          link: `https://mangadex.org/chapter/${data.md_id}`,
+        }
+        break
+      }
+      case SauceDBIndex.Drawr: {
+        const data = entry.data as DrawrResultRaw
+        this.urls = Object.values(data.ext_urls)
+        const creatorId = String(data.member_id)
+        const artworkId = String(data.drawr_id)
+        this.creator = {
+          id: creatorId,
+          name: data.member_name,
+          link: 'https://drawr.net',
+        }
+        this.artwork = {
+          id: artworkId,
+          title: data.title,
+          creator: this.creator,
+          link: `https://drawr.net/show.php?id=${artworkId}`,
+        }
+        break
+      }
+      case SauceDBIndex.ArtStation: {
+        const data = entry.data as ArtStationResultRaw
+        this.urls = Object.values(data.ext_urls)
+        this.creator = {
+          id: data.author_name,
+          name: data.author_name,
+          link: data.author_url,
+        }
+        this.artwork = {
+          id: data.as_project,
+          title: data.title,
+          creator: this.creator,
+          link: `https://www.artstation.com/${data.as_project}`,
+        }
+        break
+      }
+      case SauceDBIndex.e621: {
+        const data = entry.data as E621NetResultRaw
+        this.urls = Object.values(data.ext_urls)
+        const artworkId = String(data.e621_id)
+        this.creator = {
+          id: data.creator,
+          name: data.creator,
+          link: `https://e621.net/posts?tags=${data.creator}`,
+        }
+        this.artwork = {
+          id: artworkId,
+          title: [data.creator, data.material, data.characters]
+            .filter(Boolean)
+            .join(', '),
+          creator: this.creator,
+          link: `https://e621.net/post/show/${artworkId}`,
+        }
+        break
+      }
+      case SauceDBIndex.Gelbooru: {
+        const data = entry.data as GelbooruResultRaw
+        this.urls = Object.values(data.ext_urls)
+        const artworkId = String(data.gelbooru_id)
+        this.creator = {
+          id: data.creator,
+          name: data.creator,
+          link: `https://gelbooru.com/index.php?page=post&s=list&tags=${escape(data.creator).replaceAll(' ', '+')}`,
+        }
+        this.artwork = {
+          id: artworkId,
+          title: [data.creator, data.material, data.characters]
+            .filter(Boolean)
+            .join(', '),
+          creator: this.creator,
+          link: `https://gelbooru.com/index.php?page=post&s=view&id=${artworkId}`,
+        }
+        break
+      }
+      case SauceDBIndex.Konachan: {
+        const data = entry.data as KonachanResultRaw
+        this.urls = Object.values(data.ext_urls)
+        const artworkId = String(data.konachan_id)
+        this.creator = {
+          id: data.creator,
+          name: data.creator,
+          link: `https://konachan.com/post?tags=${data.creator}`,
+        }
+        this.artwork = {
+          id: artworkId,
+          title: [data.creator, data.material, data.characters]
+            .filter(Boolean)
+            .join(', '),
+          creator: this.creator,
+          link: `https://konachan.com/post/show/${artworkId}`,
+        }
+        break
+      }
+      case SauceDBIndex.Kemono: {
+        const data = entry.data as KemonoResultRaw
+        this.urls = Object.values(data.ext_urls)
+        this.creator = {
+          id: data.user_id,
+          name: data.user_name,
+          link: `https://kemono.party/${data.service}/user/${data.user_id}`,
+        }
+        this.artwork = {
+          id: data.id,
+          title: data.title,
+          creator: this.creator,
+          link: `${this.creator.link}/post/${data.id}`,
+        }
+        break
+      }
+      case SauceDBIndex.Fakku: {
+        const data = entry.data as FakkuResultRaw
+        this.urls = Object.values(data.ext_urls)
+        const artworkId = data.source.toLowerCase()
+        this.creator = {
+          id: data.creator,
+          name: data.creator,
+          link: `https://www.fakku.net/artists/${data.creator.toLowerCase()}`,
+        }
+        this.artwork = {
+          id: artworkId,
+          title: data.source,
+          creator: this.creator,
+          link: this.urls[0],
+        }
+        break
+      }
+      case SauceDBIndex['2D-Market']: {
+        const data = entry.data as TwoDMarketResultRaw
+        this.urls = Object.values(data.ext_urls)
+        this.creator = {
+          id: data.creator,
+          name: data.creator,
+          link: `https://2d-market.com/Search?type=all&search_value=${data.creator}`,
+        }
+        this.artwork = {
+          id: this.urls[0].slice(this.urls[0].lastIndexOf('/') + 1),
+          title: data.source,
+          creator: this.creator,
+          link: this.urls[0],
+        }
+        break
+      }
     }
   }
   public isParsed(): boolean {
@@ -462,26 +619,60 @@ export class Sauce<T extends SauceResultRaw = SauceResultRaw> implements BaseRes
   public isMadokami(): this is Sauce<MadokamiResultRaw> {
     return this.entry.header.index_id === SauceDBIndex.Madokami
   }
+  public isMangaDex(): this is Sauce<MangaDexResultRaw> {
+    return this.entry.header.index_id === SauceDBIndex.MangaDex
+  }
+  public isDrawr(): this is Sauce<DrawrResultRaw> {
+    return this.entry.header.index_id === SauceDBIndex.Drawr
+  }
+  public isArtStation(): this is Sauce<ArtStationResultRaw> {
+    return this.entry.header.index_id === SauceDBIndex.ArtStation
+  }
+  public isE621(): this is Sauce<E621NetResultRaw> {
+    return this.entry.header.index_id === SauceDBIndex.e621
+  }
+  public isGelbooru(): this is Sauce<GelbooruResultRaw> {
+    return this.entry.header.index_id === SauceDBIndex.Gelbooru
+  }
+  public isKonachan(): this is Sauce<KonachanResultRaw> {
+    return this.entry.header.index_id === SauceDBIndex.Konachan
+  }
+  public isKemono(): this is Sauce<KemonoResultRaw> {
+    return this.entry.header.index_id === SauceDBIndex.Kemono
+  }
+  public isFakku(): this is Sauce<FakkuResultRaw> {
+    return this.entry.header.index_id === SauceDBIndex.Fakku
+  }
+  public is2DMarket(): this is Sauce<TwoDMarketResultRaw> {
+    return this.entry.header.index_id === SauceDBIndex['2D-Market']
+  }
 }
 
 export type SauceResultRaw =
-| PixivResultRaw
-| PixivHistoricalResultRaw
-| NicoSeigaResultRaw
-| DanbooruResultRaw
-| NijieResultRaw
-| HMiscResultRaw
-| AnimeResultRaw
-| SankakuResultRaw
-| BcyNetResultRaw
-| DeviantArtResultRaw
-| PawooResultRaw
-| MadokamiResultRaw
-| FurAffinityResultRaw
-| TwitterResultRaw
-| FurryNetworkResultRaw
-| SkebResultRaw
-
+/* 5     */| PixivResultRaw
+/* 6     */| PixivHistoricalResultRaw
+/* 8     */| NicoSeigaResultRaw
+/* 9     */| DanbooruResultRaw
+/* 10    */| DrawrResultRaw
+/* 11    */| NijieResultRaw
+/* 16    */| FakkuResultRaw
+/* 18,38 */| HMiscResultRaw
+/* 21    */| AnimeResultRaw
+/* 25    */| GelbooruResultRaw
+/* 26    */| KonachanResultRaw
+/* 27    */| SankakuResultRaw
+/* 29    */| E621NetResultRaw
+/* 31,32 */| BcyNetResultRaw
+/* 34    */| DeviantArtResultRaw
+/* 35    */| PawooResultRaw
+/* 36    */| MadokamiResultRaw
+/* 37    */| MangaDexResultRaw
+/* 39    */| ArtStationResultRaw
+/* 40    */| FurAffinityResultRaw
+/* 41    */| TwitterResultRaw
+/* 42    */| FurryNetworkResultRaw
+/* 43    */| KemonoResultRaw
+/* 44    */| SkebResultRaw
 
 /** index: 5 */
 export interface PixivResultRaw extends BaseResultRaw {
@@ -517,12 +708,26 @@ export interface DanbooruResultRaw extends BaseResultRaw {
   source: string
 }
 
+/** index: 10 */
+export interface DrawrResultRaw extends BaseResultRaw {
+  title: string
+  drawr_id: number
+  member_name: string
+  member_id: number
+}
+
 /** index: 11 */
 export interface NijieResultRaw extends BaseResultRaw {
   title: string
   nijie_id: string
   member_name: string
   member_id: string
+}
+
+/** index: 16 */
+export interface FakkuResultRaw extends BaseResultRaw {
+  source: string
+  creator: string
 }
 
 /** index: 12 */
@@ -544,6 +749,12 @@ export interface HMiscResultRaw {
   jp_name: string
 }
 
+/** index: 19 */
+export interface TwoDMarketResultRaw extends BaseResultRaw {
+  source: string
+  creator: string
+}
+
 /** index: 21 */
 export interface AnimeResultRaw extends BaseResultRaw {
   source: string
@@ -555,9 +766,36 @@ export interface AnimeResultRaw extends BaseResultRaw {
   est_time: string
 }
 
+/** index: 25 */
+export interface GelbooruResultRaw extends BaseResultRaw {
+  gelbooru_id: string
+  creator: string
+  material: string
+  characters: string
+  source: string
+}
+
+/** index: 26 */
+export interface KonachanResultRaw extends BaseResultRaw {
+  konachan_id: number
+  creator: string
+  material: string
+  characters: string
+  source: string
+}
+
 /** index: 27 */
 export interface SankakuResultRaw extends BaseResultRaw {
   sankaku_id: number
+  creator: string
+  material: string
+  characters: string
+  source: string
+}
+
+/** index: 29 */
+export interface E621NetResultRaw extends BaseResultRaw {
+  e621_id: number
   creator: string
   material: string
   characters: string
@@ -599,6 +837,25 @@ export interface MadokamiResultRaw extends BaseResultRaw {
   type: string
 }
 
+/** index: 37 */
+export interface MangaDexResultRaw extends BaseResultRaw {
+  md_id: string
+  mu_id: number
+  mal_id: number
+  source: string
+  part: string
+  artist: string
+  author: string
+}
+
+/** index: 39 */
+export interface ArtStationResultRaw extends BaseResultRaw {
+  title: string
+  as_project: string
+  author_name: string
+  author_url: string
+}
+
 /** index: 40 */
 export interface FurAffinityResultRaw extends BaseResultRaw {
   title: string
@@ -622,6 +879,17 @@ export interface FurryNetworkResultRaw extends BaseResultRaw {
   fn_type: 'artwork'
   author_name: string
   author_url: string
+}
+
+/** index: 43 */
+export interface KemonoResultRaw extends BaseResultRaw {
+  published: string
+  title: string
+  service: string
+  service_name: string
+  id: string
+  user_id: string
+  user_name: string
 }
 
 /** index: 44 */
