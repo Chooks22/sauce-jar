@@ -31,6 +31,9 @@ A feature-packed Discord bot for artwork related operations.
 # install dependencies
 > yarn install
 
+# copy the sample env file and fill out the env file
+> cp .env.sample .env
+
 # run in development mode
 > yarn dev
 ```
