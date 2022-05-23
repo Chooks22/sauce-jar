@@ -1,6 +1,5 @@
 import type { Guild, Message, MessageActionRowComponentResolvable, PremiumTier, TextChannel, WebhookMessageOptions } from 'discord.js'
-import { MessageButton } from 'discord.js'
-import { MessageActionRow, MessageComponentTypeResolvable } from 'discord.js'
+import { MessageActionRow, MessageButton } from 'discord.js'
 const MB = 1024 * 1024
 
 const UPLOAD_LIMITS: Record<PremiumTier, number> = {
