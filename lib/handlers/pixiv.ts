@@ -48,7 +48,10 @@ async function* illustToEmbeds(artwork: IllustArtwork, sizeLimit: number): Async
   let count = 0
 
   for await (const file of downloads) {
-    if (++count > 3 || size + file.size > sizeLimit) {
+    count++
+    size += file.size
+
+    if (count > 3 || size > sizeLimit) {
       yield { embeds, files }
       embeds = []
       files = []
@@ -58,8 +61,6 @@ async function* illustToEmbeds(artwork: IllustArtwork, sizeLimit: number): Async
 
     embeds.push(newPixivEmbed(file, createdAt))
     files.push(file)
-    size += file.size
-    count++
   }
 
   if (embeds.length > 0) {
