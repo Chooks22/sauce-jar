@@ -1,6 +1,6 @@
 import type { Logger } from 'chooksie'
 import { defineEvent } from 'chooksie'
-import type { Guild, Message, TextChannel, WebhookMessageOptions } from 'discord.js'
+import type { Guild, Message, WebhookMessageOptions } from 'discord.js'
 import { MessageActionRow, MessageAttachment, MessageButton, MessageEmbed } from 'discord.js'
 import { mkdir, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
@@ -14,34 +14,7 @@ export default defineEvent({
   setup: async () => {
     const { getArtwork, downloadIllust, downloadUgoira } = await import('../lib/pixiv')
     const { default: twitter } = await import('../lib/twitter')
-    const { getUploadLimit } = await import('../lib/utils')
-
-    const createWebhook = async (message: Message) => {
-      const channel = message.channel as TextChannel
-      const author = message.author
-      const wh = await channel.createWebhook(author.username, {
-        avatar: author.displayAvatarURL(),
-      })
-
-      const destroy = async () => {
-        try {
-          await message.delete()
-        } finally {
-          await wh.delete()
-        }
-      }
-
-      const sendOnce = async (payload: string | WebhookMessageOptions) => {
-        await wh.send(payload)
-        await destroy()
-      }
-
-      const send = async (payload: string | WebhookMessageOptions) => {
-        await wh.send(payload)
-      }
-
-      return { sendOnce, send, destroy }
-    }
+    const { getUploadLimit, createWebhook } = await import('../lib/utils')
 
     const handlePixiv = async (id: string, guild: Guild | null, logger: Logger): Promise<WebhookMessageOptions[]> => {
       logger.info('getting artwork info...')
