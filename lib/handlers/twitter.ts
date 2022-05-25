@@ -48,8 +48,9 @@ async function isHandled(message: Message, expecting: number): Promise<boolean> 
     return false
   }
 
-  // if # links = # embeds, discord sent all embeds
-  return msg.embeds.length === expecting
+  // if # embeds with author == # links, twitter sent all tweets correctly
+  const count = msg.embeds.reduce((total, embed) => total + Number(embed.author !== null), 0)
+  return count === expecting
 }
 
 export default async function handleTwitter(message: Message, logger: Logger): Promise<void> {
