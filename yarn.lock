@@ -5,9 +5,9 @@ __metadata:
   version: 6
   cacheKey: 8
 
-"@chookscord/cli@npm:^2.3.0":
-  version: 2.3.0
-  resolution: "@chookscord/cli@npm:2.3.0"
+"@chookscord/cli@npm:^2.4.0":
+  version: 2.4.0
+  resolution: "@chookscord/cli@npm:2.4.0"
   dependencies:
     "@swc/core": ^1.2.147
     "@swc/helpers": ^0.3.6
@@ -20,7 +20,7 @@ __metadata:
     undici: ^4.14.1
   bin:
     chooks: ./dist/bin/index.js
-  checksum: 35be0cef11cb28725f8c44690c93432d9c08e018769a7651b1dff1721969bad6224e2ca01334ed07bae07841bb1c35258baeec049bb0d51867865836e2bdfe64
+  checksum: d93d910794f48015309de383e77a24eb80f28e446d4184fea879e8caa9265120bf58670dd337b20d6bf4e43886ebbe57d1d7d3da7057819cd8af26e8634f34da
   languageName: node
   linkType: hard
 
@@ -829,9 +829,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"chooksie@npm:^2.3.0":
-  version: 2.3.0
-  resolution: "chooksie@npm:2.3.0"
+"chooksie@npm:^2.4.0":
+  version: 2.4.0
+  resolution: "chooksie@npm:2.4.0"
   dependencies:
     "@swc/helpers": ^0.3.6
     dotenv: ^16.0.0
@@ -843,7 +843,7 @@ __metadata:
   peerDependenciesMeta:
     undici:
       optional: true
-  checksum: 58f2a62b0c1e5567c8dc205968f4e35416be6c4a83613e2bab1499e5b2d0130f3b7de56e62ffc52875d1f46498b1a82d8cf290021827050b51c91c89ef489550
+  checksum: 165214116cbdd6916704d236b51c11e1bf7e89bf897138b8caed246047dbbe5f685107e759b4339b6cd33bcc6e7c2a9c68c0f4b4cc173685e3e32e307ed45fe7
   languageName: node
   linkType: hard
 
@@ -2365,13 +2365,13 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "saucebot@workspace:."
   dependencies:
-    "@chookscord/cli": ^2.3.0
+    "@chookscord/cli": ^2.4.0
     "@chookslint/eslint-config-typescript": ^2.2.1
     "@types/node": ^17.0.31
     "@types/unzipper": ^0.10.5
     "@typescript-eslint/eslint-plugin": ^5.22.0
     "@typescript-eslint/parser": ^5.22.0
-    chooksie: ^2.3.0
+    chooksie: ^2.4.0
     discord.js: ^13.7.0
     eslint: ^8.14.0
     typescript: beta
