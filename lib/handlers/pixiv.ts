@@ -51,7 +51,7 @@ async function* illustToEmbeds(artwork: IllustArtwork, sizeLimit: number): Async
     count++
     size += file.size
 
-    if (count > 3 || size > sizeLimit) {
+    if (count > 4 || size > sizeLimit) {
       yield { embeds, files }
       embeds = []
       files = []
