@@ -51,7 +51,7 @@ export async function createWebhook(message: Message): Promise<WebhookHandler> {
 
 export function deleteButton(authorId: string): MessageButton {
   return new MessageButton()
-    .setCustomId(`msg-delete:${authorId}`)
+    .setCustomId(`msg-delete|${authorId}`)
     .setEmoji('🗑️')
     .setStyle('DANGER')
 }

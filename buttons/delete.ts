@@ -1,13 +1,13 @@
-import type { CommandContext } from 'chooksie'
-import type { ButtonInteraction, TextChannel } from 'discord.js'
+import { defineButtonHandler } from 'chooksie'
+import type { TextChannel } from 'discord.js'
 import { Message } from 'discord.js'
 
-export default {
+export default defineButtonHandler({
   customId: 'msg-delete',
-  async execute(ctx: CommandContext<ButtonInteraction>, userId: string | null): Promise<void> {
+  async execute(ctx): Promise<void> {
     const message = ctx.interaction.message
 
-    if (ctx.interaction.user.id !== userId) {
+    if (ctx.interaction.user.id !== ctx.payload) {
       await ctx.interaction.reply({
         content: 'You can only delete messages you sent!',
         ephemeral: true,
@@ -42,4 +42,4 @@ export default {
     await defer
     await ctx.interaction.editReply('Message deleted.')
   },
-}
+})
