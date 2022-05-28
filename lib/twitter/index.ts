@@ -29,11 +29,13 @@ function parseRawResponse(body: RawTwitterResponse): TwitterResponse {
     quotes: data.public_metrics.quote_count,
   }
 
-  const media = includes.media.map<TwitterMedia>(raw => ({
-    mediaKey: raw.media_key,
-    type: raw.type,
-    url: raw.url,
-  }))
+  const media: TwitterMedia[] = includes.media
+    ? includes.media.map(raw => ({
+      mediaKey: raw.media_key,
+      type: raw.type,
+      url: raw.url,
+    }))
+    : []
 
   // remove unnecessary url
   const sep = data.text.lastIndexOf(' ')
