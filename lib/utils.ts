@@ -1,7 +1,16 @@
-import type { Guild, Message, MessageActionRowComponentResolvable, PremiumTier, TextChannel, WebhookMessageOptions } from 'discord.js'
+import type {
+  EmojiIdentifierResolvable,
+  Guild,
+  Message,
+  MessageActionRowComponentResolvable,
+  MessageButtonStyleResolvable,
+  PremiumTier,
+  TextChannel,
+  WebhookMessageOptions,
+} from 'discord.js'
 import { MessageActionRow, MessageButton } from 'discord.js'
-const MB = 1024 * 1024
 
+const MB = 1024 * 1024
 const UPLOAD_LIMITS: Record<PremiumTier, number> = {
   NONE: 8 * MB,
   TIER_1: 8 * MB,
@@ -49,11 +58,45 @@ export async function createWebhook(message: Message): Promise<WebhookHandler> {
   return { sendOnce, send, destroy }
 }
 
+export interface Button {
+  customId: string
+  emoji?: EmojiIdentifierResolvable
+  label?: string
+  style?: MessageButtonStyleResolvable
+  url?: string
+  disabled?: boolean
+}
+
+export function button(data: Button): MessageButton {
+  const btn = new MessageButton()
+    .setCustomId(data.customId)
+    .setDisabled(data.disabled ?? false)
+
+  if (data.emoji !== undefined) {
+    btn.setEmoji(data.emoji)
+  }
+
+  if (data.label !== undefined) {
+    btn.setLabel(data.label)
+  }
+
+  if (data.style !== undefined) {
+    btn.setStyle(data.style)
+  }
+
+  if (data.url !== undefined) {
+    btn.setURL(data.url)
+  }
+
+  return btn
+}
+
 export function deleteButton(authorId: string): MessageButton {
-  return new MessageButton()
-    .setCustomId(`msg-delete|${authorId}`)
-    .setEmoji('🗑️')
-    .setStyle('DANGER')
+  return button({
+    customId: `msg-delete|${authorId}`,
+    emoji: '🗑️',
+    style: 'DANGER',
+  })
 }
 
 export function row(...components: MessageActionRowComponentResolvable[]): MessageActionRow {
