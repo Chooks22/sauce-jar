@@ -8,7 +8,9 @@ RUN yarn install
 
 # build files
 COPY . .
-RUN yarn build && yarn workspaces focus -A --production
+RUN yarn build && \
+  rm -r dist/.yarn && \
+  yarn workspaces focus -A --production
 
 
 FROM node:18.2.0-alpine3.15
@@ -16,6 +18,7 @@ WORKDIR /app
 
 # copy build artifacts
 COPY --from=build /build/node_modules node_modules
-COPY --from=build /build/package.json /build/dist ./
+COPY --from=build /build/dist dist
+COPY --from=build /build/package.json .
 
-CMD [ "node", "index.js" ]
+CMD [ "node", "dist" ]
