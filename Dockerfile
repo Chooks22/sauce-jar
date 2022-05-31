@@ -16,6 +16,9 @@ RUN yarn build && \
 FROM node:18.2.0-alpine3.15
 WORKDIR /app
 
+# install ffmpeg
+RUN apk add --no-cache ffmpeg
+
 # copy build artifacts
 COPY --from=build /build/node_modules node_modules
 COPY --from=build /build/dist dist
