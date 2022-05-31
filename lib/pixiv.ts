@@ -136,7 +136,7 @@ async function downloadUgoira(id: string, ugoira: UgoiraMeta, outpath: string): 
 
 async function processUgoira(id: string, inpath: string, outpath: string): Promise<string> {
   const filepath = join(outpath, `${id}.mp4`)
-  const ffmpeg = exec(`ffmpeg -y -i ffconcat.txt ${filepath}`, {
+  const ffmpeg = exec(`ffmpeg -y -i ffconcat.txt -pix_fmt yuv420p ${filepath}`, {
     cwd: inpath,
   })
 
