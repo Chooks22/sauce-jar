@@ -3,8 +3,8 @@ import { MessageAttachment } from 'discord.js'
 import { exec } from 'node:child_process'
 import { once } from 'node:events'
 import { mkdir, rm, writeFile } from 'node:fs/promises'
-import { cpus } from 'node:os'
-import { dirname, extname, join } from 'node:path'
+import { cpus, tmpdir } from 'node:os'
+import { basename, dirname, extname, join } from 'node:path'
 import { Open } from 'unzipper'
 
 const cpuCount = cpus().length
@@ -34,6 +34,12 @@ export interface IllustDetails {
   viewCount: number
 }
 
+export interface IllustAuthor {
+  id: string
+  name: string
+  iconUrl: string | null
+}
+
 export interface UgoiraFrame {
   file: string
   delay: number
@@ -46,14 +52,18 @@ export interface UgoiraMeta {
   frames: UgoiraFrame[]
 }
 
-export interface IllustArtwork {
-  type: 'illust'
+export interface BaseIllust {
+  type: 'illust' | 'ugoira'
   illust: IllustDetails
+  author: IllustAuthor
 }
 
-export interface UgoiraArtwork {
+export interface IllustArtwork extends BaseIllust {
+  type: 'illust'
+}
+
+export interface UgoiraArtwork extends BaseIllust {
   type: 'ugoira'
-  illust: IllustDetails
   meta: UgoiraMeta
 }
 
@@ -82,13 +92,77 @@ function getUgoira(id: string): Promise<{ body: UgoiraMeta }> {
   }).json()
 }
 
+async function getAuthorIcon(userId: string): Promise<string | null> {
+  const html = await fetch(`https://www.pixiv.net/en/users/${userId}`).text()
+  const match = /meta property="og:image" content="(?<icon>[^"]+)"/.exec(html)
+  return match?.groups?.icon ?? null
+}
+
+export interface Stream {
+  width: number
+  height: number
+}
+
+async function getImageSize(file: string) {
+  const ffprobe = exec(`ffprobe -show_entries stream=width,height -of json ${file}`)
+
+  let data = ''
+  ffprobe.stdout!.on('data', chunk => {
+    data += chunk
+  })
+
+  await once(ffprobe, 'close')
+  const parsed = JSON.parse(data) as { streams: Stream[] }
+  return parsed.streams[0]
+}
+
+async function resizeIcon(file: string, outfile: string) {
+  const size = await getImageSize(file)
+
+  const min = Math.min(size.width, size.height)
+  const dx = size.width - min
+  const dy = size.height - min
+
+  const ffmpeg = exec(`ffmpeg -y -i ${file} -vf crop=${min}:${min}:${dx / 2}:${dy / 2} ${outfile}`)
+  await once(ffmpeg, 'close')
+}
+
+async function downloadAuthorIcon(userId: string, iconUrl: string): Promise<string> {
+  const tmp = join(tmpdir(), userId)
+  const mkd = mkdir(tmp, { recursive: true })
+
+  const icon = await fetch(iconUrl, {
+    headers: {
+      Referer: 'https://www.pixiv.net/',
+    },
+  }).arrayBuffer()
+
+  const filename = basename(iconUrl)
+  const filepath = join(tmp, filename)
+  const ext = extname(filename)
+  const out = join(tmp, `${userId}${ext}`)
+
+  await mkd
+  await writeFile(filepath, Buffer.from(icon))
+  await resizeIcon(filepath, out)
+
+  void rm(filepath, { force: true })
+  return out
+}
+
 async function getArtwork(id: string): Promise<Artwork> {
   const illust = await getIllust(id)
+  const author: IllustAuthor = {
+    id: illust.body.userId,
+    name: illust.body.userName,
+    iconUrl: await getAuthorIcon(illust.body.userId),
+  }
 
   if (illust.body.urls.original.includes('ugoira')) {
     const ugoira = await getUgoira(id)
     return {
       type: 'ugoira',
+      author,
       illust: illust.body,
       meta: ugoira.body,
     }
@@ -96,6 +170,7 @@ async function getArtwork(id: string): Promise<Artwork> {
 
   return {
     type: 'illust',
+    author,
     illust: illust.body,
   }
 }
@@ -174,4 +249,4 @@ async function* downloadIllust(illust: IllustDetails): AsyncGenerator<MessageAtt
   }
 }
 
-export { getArtwork, downloadUgoira, processUgoira, downloadIllust }
+export { getArtwork, downloadUgoira, processUgoira, downloadIllust, getAuthorIcon, downloadAuthorIcon }

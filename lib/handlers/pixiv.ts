@@ -4,19 +4,32 @@ import { MessageAttachment, MessageEmbed } from 'discord.js'
 import { mkdir } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { basename, join } from 'node:path'
-import type { IllustArtwork, UgoiraArtwork } from '../pixiv'
-import { downloadIllust, downloadUgoira, getArtwork, processUgoira } from '../pixiv'
+import type { IllustArtwork, IllustAuthor, IllustDetails, UgoiraArtwork } from '../pixiv'
+import { downloadAuthorIcon, downloadIllust, downloadUgoira, getArtwork, processUgoira } from '../pixiv'
 import { createWebhook, deleteButton, getUploadLimit, row } from '../utils'
 
-const newPixivEmbed = (file: MessageAttachment, createdAt: Date) => new MessageEmbed()
+interface EmbedDetails {
+  icon?: MessageAttachment
+  author: IllustAuthor
+  illust: IllustDetails
+  timestamp: Date
+}
+
+const newPixivEmbed = (file: MessageAttachment, details: EmbedDetails) => new MessageEmbed()
   .setColor('#0097fa')
-  .setURL('https://www.twitter.com/')
+  .setURL(`https://www.pixiv.net/artworks/${details.illust.id}`)
+  .setTitle(details.illust.title)
+  .setAuthor({
+    name: details.author.name,
+    iconURL: details.icon && `attachment://${details.icon.name}`,
+    url: `https://www.pixiv.net/users/${details.author.id}`,
+  })
   .setImage(`attachment://${file.name}`)
   .setFooter({
     text: 'Pixiv',
     iconURL: 'https://www.pixiv.net/favicon.ico',
   })
-  .setTimestamp(createdAt)
+  .setTimestamp(details.timestamp)
 
 function* getPixivIds(content: string): Generator<string> {
   const re = /https?:\/\/(?:www\.)?pixiv\.net\/(?:en\/)?artworks\/(\d+)(?:\?\S+)?/gi
@@ -29,23 +42,31 @@ async function* illustToEmbeds(artwork: IllustArtwork, sizeLimit: number): Async
   const downloads = downloadIllust(artwork.illust)
   const createdAt = new Date(artwork.illust.createDate)
 
-  const first = await downloads.next()
-  const mainEmbed = newPixivEmbed(first.value as MessageAttachment, createdAt)
-    .setURL(`https://www.pixiv.net/artworks/${artwork.illust.id}`)
-    .setAuthor({
-      name: artwork.illust.userName,
-      url: `https://www.pixiv.net/users/${artwork.illust.userId}`,
-    })
-
-  yield {
-    embeds: [mainEmbed],
-    files: [first.value],
+  let userIcon: MessageAttachment | undefined
+  if (artwork.author.iconUrl) {
+    const icon = await downloadAuthorIcon(artwork.author.id, artwork.author.iconUrl)
+    userIcon = new MessageAttachment(icon, basename(icon))
   }
 
-  let embeds: MessageEmbed[] = []
-  let files: MessageAttachment[] = []
-  let size = 0
-  let count = 0
+  const details: EmbedDetails = {
+    icon: userIcon,
+    author: artwork.author,
+    illust: artwork.illust,
+    timestamp: createdAt,
+  }
+
+  const first = (await downloads.next()).value as MessageAttachment
+  const mainEmbed = newPixivEmbed(first, details)
+    .addField('Likes', String(details.illust.likeCount), true)
+    .addField('Bookmarks', String(details.illust.bookmarkCount), true)
+
+  let embeds: MessageEmbed[] = [mainEmbed]
+  let files: MessageAttachment[] = userIcon
+    ? [userIcon, first]
+    : [first]
+
+  let size = first.size
+  let count = 1
 
   for await (const file of downloads) {
     count++
@@ -59,7 +80,7 @@ async function* illustToEmbeds(artwork: IllustArtwork, sizeLimit: number): Async
       count = 0
     }
 
-    embeds.push(newPixivEmbed(file, createdAt))
+    embeds.push(newPixivEmbed(file, details))
     files.push(file)
   }
 
