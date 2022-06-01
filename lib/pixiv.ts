@@ -93,9 +93,33 @@ function getUgoira(id: string): Promise<{ body: UgoiraMeta }> {
 }
 
 async function getAuthorIcon(userId: string): Promise<string | null> {
-  const html = await fetch(`https://www.pixiv.net/en/users/${userId}`).text()
-  const match = /meta property="og:image" content="(?<icon>[^"]+)"/.exec(html)
-  return match?.groups?.icon ?? null
+  const html = await fetch(`https://www.pixiv.net/en/users/${userId}`, {
+    headers: {
+      'x-user-id': process.env.PIXIV_ID,
+    },
+  }).text()
+
+  const data = /meta property="og:image" content="(?<icon>[^"]+)"/.exec(html)
+  let icon = data?.groups!.icon
+    ? new URL(data.groups.icon)
+    : null
+
+  if (icon === null || icon.host === 'embed.pixiv.net') {
+    const fallback = /meta name="preload-data" id="meta-preload-data" content='(?<content>[^']*)'/.exec(html)
+    if (fallback?.groups!.content === undefined) {
+      return null
+    }
+
+    interface PreloadData {
+      timestamp: string
+      user: Record<string, { imageBig: string }>
+    }
+
+    const content = JSON.parse(fallback.groups.content) as PreloadData
+    icon = new URL(content.user[userId].imageBig)
+  }
+
+  return icon.toString()
 }
 
 export interface Stream {
