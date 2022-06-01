@@ -24,11 +24,6 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # https://github.com/marketplace/actions/docker-layer-caching
-      - uses: satackey/action-docker-layer-caching@v0.0.11
-        # Ignore the failure of a step and avoid terminating the job.
-        continue-on-error: true
-
       - name: Docker Setup Buildx
         uses: docker/setup-buildx-action@v2
 
@@ -39,3 +34,5 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ghcr.io/choooks22/sauce-jar
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
