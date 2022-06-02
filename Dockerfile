@@ -22,6 +22,6 @@ RUN apk add --no-cache ffmpeg
 # copy build artifacts
 COPY --from=build /build/node_modules node_modules
 COPY --from=build /build/dist dist
-COPY --from=build /build/package.json .
+COPY --from=build /build/sauce-jar.json package.json
 
 CMD [ "node", "dist" ]

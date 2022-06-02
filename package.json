@@ -1,6 +1,6 @@
 {
-  "name": "saucebot",
-  "version": "0.14.0",
+  "name": "sauce-jar",
+  "version": "dev",
   "private": true,
   "packageManager": "yarn@3.2.0",
   "scripts": {
@@ -23,14 +23,5 @@
     "@typescript-eslint/parser": "^5.22.0",
     "eslint": "^8.14.0",
     "typescript": "beta"
-  },
-  "engines": {
-    "node": ">=18.0.0"
-  },
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/Choooks22/sauce-jar"
-  },
-  "author": "Chooks22 <chooksdev@gmail.com>"
+  }
 }
