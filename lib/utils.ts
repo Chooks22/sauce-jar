@@ -1,4 +1,5 @@
 import type {
+  Awaitable,
   EmojiIdentifierResolvable,
   Guild,
   Message,
@@ -24,10 +25,10 @@ export function getUploadLimit(guild: Guild | null): number {
     : UPLOAD_LIMITS.NONE
 }
 
-interface WebhookHandler {
+export interface WebhookHandler {
   send: (payload: string | WebhookMessageOptions) => Promise<void>
   sendOnce: (payload: string | WebhookMessageOptions) => Promise<void>
-  destroy: () => Promise<void>
+  destroy: () => Awaitable<void>
 }
 
 export async function createWebhook(message: Message): Promise<WebhookHandler> {
@@ -38,12 +39,15 @@ export async function createWebhook(message: Message): Promise<WebhookHandler> {
     avatar: author.displayAvatarURL(),
   })
 
-  const destroy = async () => {
+  let destroy: () => Awaitable<void> = async () => {
     try {
       await message.delete()
     } finally {
       await wh.delete()
     }
+
+    // overwrite destroy so succeeding calls wouldn't error
+    destroy = () => { /*  */ }
   }
 
   const sendOnce = async (payload: string | WebhookMessageOptions) => {

@@ -6,7 +6,8 @@ import { tmpdir } from 'node:os'
 import { basename, join } from 'node:path'
 import type { IllustArtwork, IllustAuthor, IllustDetails, UgoiraArtwork } from '../pixiv'
 import { downloadAuthorIcon, downloadIllust, downloadUgoira, getArtwork, processUgoira } from '../pixiv'
-import { createWebhook, deleteButton, getUploadLimit, row } from '../utils'
+import type { WebhookHandler } from '../utils'
+import { deleteButton, getUploadLimit, row } from '../utils'
 
 interface EmbedDetails {
   icon?: MessageAttachment
@@ -155,9 +156,8 @@ async function* processPixiv(id: string, sizeLimit: number, logger: Logger): Asy
   }
 }
 
-export default async function handlePixiv(message: Message, logger: Logger): Promise<void> {
+export default async function handlePixiv(message: Message, wh: WebhookHandler, logger: Logger): Promise<void> {
   await message.react('⌛')
-  const wh = await createWebhook(message)
   const components = [row(deleteButton(message.author.id))]
   const sizeLimit = getUploadLimit(message.guild)
 

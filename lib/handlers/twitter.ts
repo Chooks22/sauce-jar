@@ -4,7 +4,8 @@ import { MessageEmbed } from 'discord.js'
 import { setTimeout as sleep } from 'timers/promises'
 import getTweetData from '../twitter'
 import type { Tweet, TwitterMedia, TwitterUser } from '../twitter/types'
-import { createWebhook, deleteButton, row } from '../utils'
+import type { WebhookHandler } from '../utils'
+import { deleteButton, row } from '../utils'
 
 const newTwitterEmbed = (medium: TwitterMedia) => new MessageEmbed()
   .setURL('https://www.twitter.com/')
@@ -53,7 +54,7 @@ async function isHandled(message: Message, expecting: number): Promise<boolean> 
   return count === expecting
 }
 
-export default async function handleTwitter(message: Message, logger: Logger): Promise<void> {
+export default async function handleTwitter(message: Message, wh: WebhookHandler, logger: Logger): Promise<void> {
   let content = message.content
   const re = /https?:\/\/(?:mobile\.|www\.)?twitter\.com\/(\w{1,15}\/status)\/(\d+)(?:\?\S+)?/gi
   const matched = [...content.matchAll(re)]
@@ -65,7 +66,6 @@ export default async function handleTwitter(message: Message, logger: Logger): P
 
   await message.react('⌛')
   const components = [row(deleteButton(message.author.id))]
-  const wh = await createWebhook(message)
   const responses: WebhookMessageOptions[] = []
 
   let hasVideo = false

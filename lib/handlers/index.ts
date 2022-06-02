@@ -1,20 +1,27 @@
 import type { Logger } from 'chooksie'
 import type { Message } from 'discord.js'
+import type { WebhookHandler } from '../utils'
 import { tests } from './consts'
 import pixiv from './pixiv'
 import twitter from './twitter'
 
 // @todo: handle messages with multiple sites
-export function getHandler(message: Message): ((logger: Logger) => Promise<void>) | null {
+export type MessageHandler = (webhook: WebhookHandler) => Promise<void>
+export function getHandler(message: Message, logger: Logger): MessageHandler | null {
   const content = message.content
 
+  logger.info('testing for twitter content')
   if (tests.twitter.test(content)) {
-    return logger => twitter(message, logger)
+    logger.info('found twitter content')
+    return wh => twitter(message, wh, logger)
   }
 
+  logger.info('testing for pixiv content')
   if (tests.pixiv.test(content)) {
-    return logger => pixiv(message, logger)
+    logger.info('found pixiv content')
+    return wh => pixiv(message, wh, logger)
   }
 
+  logger.info('no content found')
   return null
 }
