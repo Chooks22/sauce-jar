@@ -29,6 +29,7 @@ export interface WebhookHandler {
   send: (payload: string | WebhookMessageOptions) => Promise<void>
   sendOnce: (payload: string | WebhookMessageOptions) => Promise<void>
   destroy: () => Awaitable<void>
+  cleanup: () => Awaitable<void>
 }
 
 export async function createWebhook(message: Message): Promise<WebhookHandler> {
@@ -39,14 +40,20 @@ export async function createWebhook(message: Message): Promise<WebhookHandler> {
     avatar: author.displayAvatarURL(),
   })
 
+  let cleanup: () => Awaitable<void> = async () => {
+    await wh.delete()
+
+    // overwrite cleanup so succeeding calls wouldn't error
+    cleanup = () => { /*  */ }
+  }
+
   let destroy: () => Awaitable<void> = async () => {
     try {
       await message.delete()
     } finally {
-      await wh.delete()
+      await cleanup()
     }
 
-    // overwrite destroy so succeeding calls wouldn't error
     destroy = () => { /*  */ }
   }
 
@@ -59,7 +66,7 @@ export async function createWebhook(message: Message): Promise<WebhookHandler> {
     await wh.send(payload)
   }
 
-  return { sendOnce, send, destroy }
+  return { sendOnce, send, destroy, cleanup }
 }
 
 export interface Button {

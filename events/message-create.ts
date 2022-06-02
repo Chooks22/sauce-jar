@@ -26,6 +26,6 @@ export default defineEvent({
       ctx.logger.info('failed to handle message')
     }
 
-    await wh.destroy()
+    await wh.cleanup()
   },
 })
