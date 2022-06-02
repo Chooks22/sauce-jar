@@ -97,6 +97,7 @@ export enum SauceDBIndex {
   Pawoo = 35,
   Madokami = 36,
   MangaDex = 37,
+  MangaDex2 = 371,
   ArtStation = 39,
   FurAffinity = 40,
   Twitter = 41,
@@ -408,7 +409,8 @@ export class Sauce<T extends SauceResultRaw = SauceResultRaw> implements BaseRes
         }
         break
       }
-      case SauceDBIndex.MangaDex: {
+      case SauceDBIndex.MangaDex:
+      case SauceDBIndex.MangaDex2: {
         const data = entry.data as MangaDexResultRaw
         this.urls = Object.values(data.ext_urls)
         this.creator = {
@@ -649,30 +651,30 @@ export class Sauce<T extends SauceResultRaw = SauceResultRaw> implements BaseRes
 }
 
 export type SauceResultRaw =
-/* 5     */| PixivResultRaw
-/* 6     */| PixivHistoricalResultRaw
-/* 8     */| NicoSeigaResultRaw
-/* 9     */| DanbooruResultRaw
-/* 10    */| DrawrResultRaw
-/* 11    */| NijieResultRaw
-/* 16    */| FakkuResultRaw
-/* 18,38 */| HMiscResultRaw
-/* 21    */| AnimeResultRaw
-/* 25    */| GelbooruResultRaw
-/* 26    */| KonachanResultRaw
-/* 27    */| SankakuResultRaw
-/* 29    */| E621NetResultRaw
-/* 31,32 */| BcyNetResultRaw
-/* 34    */| DeviantArtResultRaw
-/* 35    */| PawooResultRaw
-/* 36    */| MadokamiResultRaw
-/* 37    */| MangaDexResultRaw
-/* 39    */| ArtStationResultRaw
-/* 40    */| FurAffinityResultRaw
-/* 41    */| TwitterResultRaw
-/* 42    */| FurryNetworkResultRaw
-/* 43    */| KemonoResultRaw
-/* 44    */| SkebResultRaw
+/* 5      */| PixivResultRaw
+/* 6      */| PixivHistoricalResultRaw
+/* 8      */| NicoSeigaResultRaw
+/* 9      */| DanbooruResultRaw
+/* 10     */| DrawrResultRaw
+/* 11     */| NijieResultRaw
+/* 16     */| FakkuResultRaw
+/* 18,38  */| HMiscResultRaw
+/* 21     */| AnimeResultRaw
+/* 25     */| GelbooruResultRaw
+/* 26     */| KonachanResultRaw
+/* 27     */| SankakuResultRaw
+/* 29     */| E621NetResultRaw
+/* 31,32  */| BcyNetResultRaw
+/* 34     */| DeviantArtResultRaw
+/* 35     */| PawooResultRaw
+/* 36     */| MadokamiResultRaw
+/* 37,371 */| MangaDexResultRaw
+/* 39     */| ArtStationResultRaw
+/* 40     */| FurAffinityResultRaw
+/* 41     */| TwitterResultRaw
+/* 42     */| FurryNetworkResultRaw
+/* 43     */| KemonoResultRaw
+/* 44     */| SkebResultRaw
 
 /** index: 5 */
 export interface PixivResultRaw extends BaseResultRaw {
@@ -837,7 +839,7 @@ export interface MadokamiResultRaw extends BaseResultRaw {
   type: string
 }
 
-/** index: 37 */
+/** index: 37, 371 */
 export interface MangaDexResultRaw extends BaseResultRaw {
   md_id: string
   mu_id: number
