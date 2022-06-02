@@ -247,27 +247,39 @@ async function processUgoira(id: string, inpath: string, outpath: string): Promi
 }
 
 async function getImg(url: string) {
-  const arrayBuf = await fetch(url, {
+  const res = await fetch(url, {
     headers: {
       'Accept-Encoding': 'gzip, deflate, br',
       'Referer': 'https://www.pixiv.net/',
     },
-  }).arrayBuffer()
+  })
 
-  return Buffer.from(arrayBuf)
+  return {
+    size: Number(res.headers.get('Content-Length')),
+    async download(): Promise<Buffer> {
+      const arrayBuf = await res.arrayBuffer()
+      return Buffer.from(arrayBuf)
+    },
+  }
 }
 
-async function* downloadIllust(illust: IllustDetails): AsyncGenerator<MessageAttachment> {
+async function* downloadIllust(illust: IllustDetails, limit = Infinity): AsyncGenerator<MessageAttachment | null> {
   const url = illust.urls.original
   const ext = extname(url)
   const baseUrl = dirname(url)
 
   for (let i = 0; i < illust.pageCount; i++) {
     const filename = `${illust.id}_p${i}${ext}`
-    const img = await getImg(`${baseUrl}/${filename}`)
+    const res = await getImg(`${baseUrl}/${filename}`)
 
+    if (res.size > limit) {
+      yield null
+      continue
+    }
+
+    const img = await res.download()
     const attachment = new MessageAttachment(img, filename)
-    attachment.size = img.length
+    attachment.size = res.size
 
     yield attachment
   }

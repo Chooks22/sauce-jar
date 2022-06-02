@@ -38,14 +38,20 @@ function* getPixivIds(content: string): Generator<string> {
   }
 }
 
-async function* illustToEmbeds(artwork: IllustArtwork, sizeLimit: number): AsyncGenerator<WebhookMessageOptions> {
-  const downloads = downloadIllust(artwork.illust)
+async function* illustToEmbeds(
+  artwork: IllustArtwork,
+  sizeLimit: number,
+  logger: Logger,
+): AsyncGenerator<WebhookMessageOptions> {
+  const downloads = downloadIllust(artwork.illust, sizeLimit)
   const createdAt = new Date(artwork.illust.createDate)
 
   let userIcon: MessageAttachment | undefined
   if (artwork.author.iconUrl) {
+    logger.info('downloading author icon...')
     const icon = await downloadAuthorIcon(artwork.author.id, artwork.author.iconUrl)
     userIcon = new MessageAttachment(icon, basename(icon))
+    logger.info('got author icon')
   }
 
   const details: EmbedDetails = {
@@ -55,7 +61,21 @@ async function* illustToEmbeds(artwork: IllustArtwork, sizeLimit: number): Async
     timestamp: createdAt,
   }
 
-  const first = (await downloads.next()).value as MessageAttachment
+  logger.info('downloading illust...')
+  let large = 0
+  let page = 1
+  let count = 1
+
+  let first = (await downloads.next()).value as MessageAttachment | null
+  logger.info(`got page ${page} of ${artwork.illust.pageCount}`)
+
+  while (first === null) {
+    large++
+    logger.info('illust skipped. too large to upload')
+    first = (await downloads.next()).value as MessageAttachment | null
+    logger.info(`got page ${++count} of ${artwork.illust.pageCount}`)
+  }
+
   const mainEmbed = newPixivEmbed(first, details)
     .addField('Likes', String(details.illust.likeCount), true)
     .addField('Bookmarks', String(details.illust.bookmarkCount), true)
@@ -66,9 +86,15 @@ async function* illustToEmbeds(artwork: IllustArtwork, sizeLimit: number): Async
     : [first]
 
   let size = first.size
-  let count = 1
 
   for await (const file of downloads) {
+    logger.info(`got page ${++page} of ${artwork.illust.pageCount}`)
+    if (file === null) {
+      large++
+      logger.info('illust skipped. too large to upload')
+      continue
+    }
+
     count++
     size += file.size
 
@@ -84,8 +110,16 @@ async function* illustToEmbeds(artwork: IllustArtwork, sizeLimit: number): Async
     files.push(file)
   }
 
+  logger.info('finished downloading illust')
   if (embeds.length > 0) {
     yield { embeds, files }
+  }
+
+  if (large > 0) {
+    logger.info('got skipped pages')
+    yield {
+      content: `> ${large} of ${artwork.illust.pageCount} images were too large to upload.`,
+    }
   }
 }
 
@@ -111,7 +145,7 @@ async function* processPixiv(id: string, sizeLimit: number, logger: Logger): Asy
 
   if (artwork.type === 'illust') {
     logger.info('got illust artwork')
-    yield* illustToEmbeds(artwork, sizeLimit)
+    yield* illustToEmbeds(artwork, sizeLimit, logger)
   }
 
   if (artwork.type === 'ugoira') {
