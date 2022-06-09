@@ -3,8 +3,8 @@
 A feature-packed Discord bot for artwork related operations.
 
 <p>
-  <img alt="Pixiv Embed Preview" src="https://user-images.githubusercontent.com/49726759/172853220-53282a28-2476-4045-b2d8-6193c97361fa.png">
-  <img alt="SauceNAO Preview" src="https://user-images.githubusercontent.com/49726759/172851841-e6b3ff64-123a-4c34-99ed-7ff57354d609.png">
+  <img alt="Pixiv Embed Preview" src="https://user-images.githubusercontent.com/49726759/172853220-53282a28-2476-4045-b2d8-6193c97361fa.png" width="392">
+  <img alt="SauceNAO Preview" src="https://user-images.githubusercontent.com/49726759/172851841-e6b3ff64-123a-4c34-99ed-7ff57354d609.png" width="224">
 </p>
 
 ## Features
