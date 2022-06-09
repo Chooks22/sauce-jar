@@ -2,6 +2,11 @@
 
 A feature-packed Discord bot for artwork related operations.
 
+<p>
+  <img alt="Pixiv Embed Preview" src="https://user-images.githubusercontent.com/49726759/172853220-53282a28-2476-4045-b2d8-6193c97361fa.png">
+  <img alt="SauceNAO Preview" src="https://user-images.githubusercontent.com/49726759/172851841-e6b3ff64-123a-4c34-99ed-7ff57354d609.png">
+</p>
+
 ## Features
 
 - Parses login-locked Twitter embeds
@@ -49,4 +54,12 @@ A feature-packed Discord bot for artwork related operations.
 
 # start bot in production mode
 > yarn start
+```
+
+### Running in Production using Docker
+
+```sh
+# images for x86-64 and arm64 exists
+# you can use other methods for setting env variables
+> docker run --env-file .env ghcr.io/choooks22/sauce-jar
 ```
