@@ -66,7 +66,12 @@ export async function createWebhook(message: Message): Promise<WebhookHandler> {
     await wh.send(payload)
   }
 
-  return { sendOnce, send, destroy, cleanup }
+  return {
+    sendOnce,
+    send,
+    cleanup: () => cleanup(),
+    destroy: () => destroy(),
+  }
 }
 
 export interface Button {
