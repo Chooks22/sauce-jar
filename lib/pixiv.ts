@@ -263,18 +263,32 @@ async function getImg(url: string) {
   }
 }
 
+async function downloadIllustSub(illust: IllustDetails, page: number) {
+  const url = illust.urls.regular.replace('p0', `p${page}`)
+  const filename = basename(url)
+  const image = await getImg(url)
+  return { filename, image }
+}
+
 async function* downloadIllust(illust: IllustDetails, limit = Infinity): AsyncGenerator<MessageAttachment | null> {
   const url = illust.urls.original
   const ext = extname(url)
   const baseUrl = dirname(url)
 
   for (let i = 0; i < illust.pageCount; i++) {
-    const filename = `${illust.id}_p${i}${ext}`
-    const res = await getImg(`${baseUrl}/${filename}`)
+    let filename = `${illust.id}_p${i}${ext}`
+    let res = await getImg(`${baseUrl}/${filename}`)
 
     if (res.size > limit) {
-      yield null
-      continue
+      const sub = await downloadIllustSub(illust, i)
+      if (sub.image.size > limit) {
+        console.log('sub image too large', sub.image.size)
+        yield null
+        continue
+      }
+
+      filename = sub.filename
+      res = sub.image
     }
 
     const img = await res.download()
