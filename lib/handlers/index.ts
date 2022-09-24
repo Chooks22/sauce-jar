@@ -3,6 +3,7 @@ import type { Message } from 'discord.js'
 import type { WebhookHandler } from '../utils'
 import { tests } from './consts'
 import pixiv from './pixiv'
+import tiktok from './tiktok'
 import twitter from './twitter'
 
 // @todo: handle messages with multiple sites
@@ -20,6 +21,12 @@ export function getHandler(message: Message, logger: Logger): MessageHandler | n
   if (tests.pixiv.test(content)) {
     logger.info('found pixiv content')
     return wh => pixiv(message, wh, logger)
+  }
+
+  logger.info('testing for tiktok content')
+  if (tests.tiktok.test(content)) {
+    logger.info('found tiktok content')
+    return wh => tiktok(message, wh, logger)
   }
 
   logger.info('no content found')
