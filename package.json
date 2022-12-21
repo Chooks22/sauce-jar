@@ -10,12 +10,10 @@
     "register": "chooks register"
   },
   "dependencies": {
-    "bufferutil": "^4.0.6",
     "chooksie": "^2.4.1",
     "discord.js": "^13.8.0",
     "pixiv-web-api": "^0.1.5",
-    "unzipper": "^0.10.11",
-    "utf-8-validate": "^5.0.9"
+    "unzipper": "^0.10.11"
   },
   "devDependencies": {
     "@chookscord/cli": "^2.4.0",

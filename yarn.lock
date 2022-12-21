@@ -811,16 +811,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bufferutil@npm:^4.0.6":
-  version: 4.0.6
-  resolution: "bufferutil@npm:4.0.6"
-  dependencies:
-    node-gyp: latest
-    node-gyp-build: ^4.3.0
-  checksum: dd107560947445280af7820c3d0534127b911577d85d537e1d7e0aa30fd634853cef8a994d6e8aed3d81388ab1a20257de776164afe6a6af8e78f5f17968ebd6
-  languageName: node
-  linkType: hard
-
 "cacache@npm:^16.0.2":
   version: 16.1.0
   resolution: "cacache@npm:16.1.0"
@@ -2303,17 +2293,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"node-gyp-build@npm:^4.3.0":
-  version: 4.4.0
-  resolution: "node-gyp-build@npm:4.4.0"
-  bin:
-    node-gyp-build: bin.js
-    node-gyp-build-optional: optional.js
-    node-gyp-build-test: build-test.js
-  checksum: 972a059f960253d254e0b23ce10f54c8982236fc0edcab85166d0b7f87443b2ce98391c877cfb2f6eeafcf03c538c5f4dd3e0bfff03828eb48634f58f4c64343
-  languageName: node
-  linkType: hard
-
 "node-gyp@npm:latest":
   version: 9.0.0
   resolution: "node-gyp@npm:9.0.0"
@@ -2808,14 +2787,12 @@ __metadata:
     "@types/unzipper": ^0.10.5
     "@typescript-eslint/eslint-plugin": ^5.22.0
     "@typescript-eslint/parser": ^5.22.0
-    bufferutil: ^4.0.6
     chooksie: ^2.4.1
     discord.js: ^13.8.0
     eslint: ^8.17.0
     pixiv-web-api: ^0.1.5
     typescript: ^4.7.3
     unzipper: ^0.10.11
-    utf-8-validate: ^5.0.9
   languageName: unknown
   linkType: soft
 
@@ -3229,16 +3206,6 @@ __metadata:
     dot-json: ^1.2.2
     lodash.clonedeep: ^4.5.0
   checksum: 79474705f73a75eb49719bd59fecfb93123851b3137d503267c0a04c080c42b356fbfbbd943b63577d1afdf120b63c1a8c85e6401ab4cb8c3d02f2d71d85784c
-  languageName: node
-  linkType: hard
-
-"utf-8-validate@npm:^5.0.9":
-  version: 5.0.9
-  resolution: "utf-8-validate@npm:5.0.9"
-  dependencies:
-    node-gyp: latest
-    node-gyp-build: ^4.3.0
-  checksum: 90117f1b65e0a1256c83dfad529983617263b622f2379745311d0438c7ea31db0d134ebd0dca84c3f5847a3560a3d249644e478a9109c616f63c7ea19cac53dc
   languageName: node
   linkType: hard
 
