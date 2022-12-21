@@ -6,6 +6,7 @@ import { mkdir, rm, writeFile } from 'node:fs/promises'
 import { cpus, tmpdir } from 'node:os'
 import { basename, dirname, extname, join } from 'node:path'
 import PixivWeb from 'pixiv-web-api'
+import type { IllustDetailsResponse, UgoiraMetaDataResponse } from 'pixiv-web-api/dist/ResponseTypes'
 import { Open } from 'unzipper'
 
 const pixiv = new PixivWeb({ cookie: process.env.PIXIV_KEY })
@@ -19,22 +20,7 @@ export interface IllustUrls {
   original: string
 }
 
-export interface IllustDetails {
-  pageCount: number
-  urls: IllustUrls
-  id: string
-  title: string
-  description: string
-  createDate: string
-  uploadDate: string
-  userId: string
-  userName: string
-  bookmarkCount: number
-  likeCount: number
-  commentCount: number
-  responseCount: number
-  viewCount: number
-}
+export type IllustDetails = Exclude<IllustDetailsResponse['body'], undefined>
 
 export interface IllustAuthor {
   id: string
@@ -47,12 +33,7 @@ export interface UgoiraFrame {
   delay: number
 }
 
-export interface UgoiraMeta {
-  src: string
-  originalSrc: string
-  mime_type: string
-  frames: UgoiraFrame[]
-}
+export type UgoiraMeta = Exclude<UgoiraMetaDataResponse['body'], undefined>
 
 export interface BaseIllust {
   type: 'illust' | 'ugoira'
@@ -70,29 +51,6 @@ export interface UgoiraArtwork extends BaseIllust {
 }
 
 export type Artwork = IllustArtwork | UgoiraArtwork
-
-function getIllust(id: string): Promise<{ body: IllustDetails }> {
-  return fetch<{ body: IllustDetails }>(`https://www.pixiv.net/ajax/illust/${id}`, {
-    credentials: 'include',
-    headers: {
-      'User-Agent': 'Mozilla/5.0',
-      'Accept': 'application/json',
-      'x-user-id': process.env.PIXIV_ID,
-    },
-  }).json()
-}
-
-function getUgoira(id: string): Promise<{ body: UgoiraMeta }> {
-  return fetch<{ body: UgoiraMeta }>(`https://www.pixiv.net/ajax/illust/${id}/ugoira_meta`, {
-    headers: {
-      'User-Agent': 'Mozilla/5.0',
-      'Accept': 'application/json',
-      'Accept-Encoding': 'gzip, deflate, br',
-      'x-user-id': process.env.PIXIV_ID,
-      'Cookie': `PHPSESSID=${process.env.PIXIV_KEY}`,
-    },
-  }).json()
-}
 
 async function getAuthorIcon(userId: string): Promise<string | null> {
   const html = await fetch(`https://www.pixiv.net/en/users/${userId}`, {
@@ -177,27 +135,28 @@ async function downloadAuthorIcon(userId: string, iconUrl: string): Promise<stri
 }
 
 async function getArtwork(id: string): Promise<Artwork> {
-  const illust = await getIllust(id)
+  const illust = await pixiv.illustDetails(id)
   const author: IllustAuthor = {
-    id: illust.body.userId,
-    name: illust.body.userName,
-    iconUrl: await getAuthorIcon(illust.body.userId),
+    id: illust.body!.userId,
+    name: illust.body!.userName,
+    iconUrl: await getAuthorIcon(illust.body!.userId),
   }
 
-  if (illust.body.urls.original.includes('ugoira')) {
-    const ugoira = await getUgoira(id)
+  console.log('got illust:', illust)
+  if (illust.body!.urls.original.includes('ugoira')) {
+    const ugoira = await pixiv.ugoiraMetaData(id)
     return {
       type: 'ugoira',
       author,
-      illust: illust.body,
-      meta: ugoira.body,
+      illust: illust.body!,
+      meta: ugoira.body!,
     }
   }
 
   return {
     type: 'illust',
     author,
-    illust: illust.body,
+    illust: illust.body!,
   }
 }
 
