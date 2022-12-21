@@ -755,15 +755,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bindings@npm:^1.5.0":
-  version: 1.5.0
-  resolution: "bindings@npm:1.5.0"
-  dependencies:
-    file-uri-to-path: 1.0.0
-  checksum: 65b6b48095717c2e6105a021a7da4ea435aa8d3d3cd085cb9e85bcb6e5773cf318c4745c3f7c504412855940b585bdf9b918236612a1c7a7942491de176f1ae7
-  languageName: node
-  linkType: hard
-
 "bluebird@npm:~3.4.1":
   version: 3.4.7
   resolution: "bluebird@npm:3.4.7"
@@ -1322,17 +1313,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"erlpack@npm:^0.1.4":
-  version: 0.1.4
-  resolution: "erlpack@npm:0.1.4"
-  dependencies:
-    bindings: ^1.5.0
-    nan: ^2.15.0
-    node-gyp: latest
-  checksum: d5bcc4a5eddec0b6040f9ef9dc028250c14343d275d6e091dc2db2bcaecc11b09cdf119720a333afba688cf35cd5a1da4ecdc79862c4d15f5426a90e756cfc50
-  languageName: node
-  linkType: hard
-
 "err-code@npm:^2.0.2":
   version: 2.0.3
   resolution: "err-code@npm:2.0.3"
@@ -1543,13 +1523,6 @@ __metadata:
   dependencies:
     flat-cache: ^3.0.4
   checksum: f49701feaa6314c8127c3c2f6173cfefff17612f5ed2daaafc6da13b5c91fd43e3b2a58fd0d63f9f94478a501b167615931e7200e31485e320f74a33885a9c74
-  languageName: node
-  linkType: hard
-
-"file-uri-to-path@npm:1.0.0":
-  version: 1.0.0
-  resolution: "file-uri-to-path@npm:1.0.0"
-  checksum: b648580bdd893a008c92c7ecc96c3ee57a5e7b6c4c18a9a09b44fb5d36d79146f8e442578bc0e173dc027adf3987e254ba1dfd6e3ec998b7c282873010502144
   languageName: node
   linkType: hard
 
@@ -2293,15 +2266,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nan@npm:^2.14.0, nan@npm:^2.15.0":
-  version: 2.16.0
-  resolution: "nan@npm:2.16.0"
-  dependencies:
-    node-gyp: latest
-  checksum: cb16937273ea55b01ea47df244094c12297ce6b29b36e845d349f1f7c268b8d7c5abd126a102c5678a1e1afd0d36bba35ea0cc959e364928ce60561c9306064a
-  languageName: node
-  linkType: hard
-
 "nanospinner@npm:^1.0.0":
   version: 1.1.0
   resolution: "nanospinner@npm:1.1.0"
@@ -2847,13 +2811,11 @@ __metadata:
     bufferutil: ^4.0.6
     chooksie: ^2.4.1
     discord.js: ^13.8.0
-    erlpack: ^0.1.4
     eslint: ^8.17.0
     pixiv-web-api: ^0.1.5
     typescript: ^4.7.3
     unzipper: ^0.10.11
     utf-8-validate: ^5.0.9
-    zlib-sync: ^0.1.7
   languageName: unknown
   linkType: soft
 
@@ -3364,15 +3326,5 @@ __metadata:
   version: 4.0.0
   resolution: "yallist@npm:4.0.0"
   checksum: 343617202af32df2a15a3be36a5a8c0c8545208f3d3dfbc6bb7c3e3b7e8c6f8e7485432e4f3b88da3031a6e20afa7c711eded32ddfb122896ac5d914e75848d5
-  languageName: node
-  linkType: hard
-
-"zlib-sync@npm:^0.1.7":
-  version: 0.1.7
-  resolution: "zlib-sync@npm:0.1.7"
-  dependencies:
-    nan: ^2.14.0
-    node-gyp: latest
-  checksum: 8f6ef7bf5726b41fefffa4509f5679872b425ef47227a59d8c787b32518db6220961262f78b0f6eb1dcd9b52cd71bc8213d4f061b8b56a9b7e82c345a548e6f4
   languageName: node
   linkType: hard
