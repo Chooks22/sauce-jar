@@ -33,6 +33,6 @@ jobs:
           context: .
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ghcr.io/choooks22/sauce-jar
+          tags: ghcr.io/chooks22/sauce-jar
           cache-from: type=gha
           cache-to: type=gha,mode=max
