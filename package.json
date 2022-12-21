@@ -14,6 +14,7 @@
     "chooksie": "^2.4.1",
     "discord.js": "^13.8.0",
     "erlpack": "^0.1.4",
+    "pixiv-web-api": "^0.1.5",
     "unzipper": "^0.10.11",
     "utf-8-validate": "^5.0.9",
     "zlib-sync": "^0.1.7"
