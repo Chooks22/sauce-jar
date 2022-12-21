@@ -5,8 +5,10 @@ import { once } from 'node:events'
 import { mkdir, rm, writeFile } from 'node:fs/promises'
 import { cpus, tmpdir } from 'node:os'
 import { basename, dirname, extname, join } from 'node:path'
+import PixivWeb from 'pixiv-web-api'
 import { Open } from 'unzipper'
 
+const pixiv = new PixivWeb({ cookie: process.env.PIXIV_KEY })
 const cpuCount = cpus().length
 
 export interface IllustUrls {
@@ -208,28 +210,24 @@ function framesToConcat(frames: UgoiraFrame[]): string {
   return file
 }
 
-async function downloadUgoira(id: string, ugoira: UgoiraMeta, outpath: string): Promise<string> {
-  const arrayBuf = await fetch(ugoira.originalSrc, {
-    headers: {
-      'User-Agent': 'Mozilla/5.0',
-      'Accept-Encoding': 'gzip, deflate, br',
-      'x-user-id': process.env.PIXIV_ID,
-      'Cookie': `PHPSESSID=${process.env.PIXIV_KEY}`,
-      'Referer': `https://www.pixiv.net/artworks/${id}`,
-    },
-  }).arrayBuffer()
-
-  const zip = Buffer.from(arrayBuf)
+async function downloadUgoira(id: string, outpath: string): Promise<string> {
   const tmp = join(outpath, 'tmp')
   await mkdir(tmp, { recursive: true })
 
-  const concatFile = join(tmp, 'ffconcat.txt')
-  const concatData = framesToConcat(ugoira.frames)
-  await writeFile(concatFile, concatData)
+  // get ugoira details
+  const details = (await pixiv.ugoiraMetaData(id)).body!
 
-  const gallery = await Open.buffer(zip)
+  // download and extract ugoira zip
+  const zipFile = await pixiv.getFile(details.originalSrc)
+  const gallery = await Open.buffer(zipFile)
   await gallery.extract({ path: tmp, concurrency: cpuCount })
 
+  // download and parse frame data
+  const concatFile = join(tmp, 'ffconcat.txt')
+  const concatData = framesToConcat(details.frames)
+  await writeFile(concatFile, concatData)
+
+  // return where file were saved
   return tmp
 }
 

@@ -127,17 +127,17 @@ async function* illustToEmbeds(
 async function ugoiraToEmbed(artwork: UgoiraArtwork, logger: Logger) {
   const id = artwork.illust.id
 
-  logger.info('downloading ugoira...')
   const outpath = join(tmpdir(), id)
   await mkdir(outpath, { recursive: true })
-  const output = await downloadUgoira(id, artwork.meta, outpath)
 
-  logger.info('processing ugoira...')
-  const file = await processUgoira(id, output, outpath)
-  const filename = basename(file)
-  logger.info('finished processing ugoira')
+  logger.info(`downloading ugoira ${id}...`)
+  const rawUgoira = await downloadUgoira(id, outpath)
 
-  return new MessageAttachment(file, filename)
+  logger.info(`processing ugoira ${id}...`)
+  const videoPath = await processUgoira(id, rawUgoira, outpath)
+
+  logger.info(`ugoira ${id} processed!`)
+  return new MessageAttachment(videoPath, basename(videoPath))
 }
 
 async function* processPixiv(id: string, sizeLimit: number, logger: Logger): AsyncGenerator<WebhookMessageOptions> {
