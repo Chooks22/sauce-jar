@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "chooks",
     "start": "node dist",
-    "build": "chooks build && rm -r dist/.yarn",
+    "build": "chooks build",
     "register": "chooks register"
   },
   "dependencies": {
