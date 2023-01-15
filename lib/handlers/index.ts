@@ -2,6 +2,7 @@ import type { Logger } from 'chooksie'
 import type { Message } from 'discord.js'
 import type { WebhookHandler } from '../utils'
 import { tests } from './consts'
+import instagram from './instagram'
 import pixiv from './pixiv'
 import tiktok from './tiktok'
 import twitter from './twitter'
@@ -21,6 +22,12 @@ export function getHandler(message: Message, logger: Logger): MessageHandler | n
   if (tests.pixiv.test(content)) {
     logger.info('found pixiv content')
     return wh => pixiv(message, wh, logger)
+  }
+
+  logger.info('testing for instagram content')
+  if (tests.instagram.test(content)) {
+    logger.info('found instagram content')
+    return wh => instagram(message, wh, logger)
   }
 
   logger.info('testing for tiktok content')
