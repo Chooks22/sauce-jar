@@ -2,46 +2,48 @@ import type { Logger } from 'chooksie'
 import type { Message, WebhookMessageOptions } from 'discord.js'
 import { MessageEmbed } from 'discord.js'
 import { setTimeout as sleep } from 'timers/promises'
-import getTweetData from '../twitter'
-import type { Tweet, TwitterMedia, TwitterUser } from '../twitter/types'
+import getTweetData, { type VxTwitterResponse } from '../twitter'
 import type { WebhookHandler } from '../utils'
 import { deleteButton, row } from '../utils'
 
-const newTwitterEmbed = (medium: TwitterMedia) => new MessageEmbed()
+const newTwitterEmbed = (url: string) => new MessageEmbed()
   .setURL('https://www.twitter.com/')
-  .setImage(medium.url)
+  .setImage(url)
 
-function tweetToEmbeds(tweet: Tweet, author: TwitterUser) {
-  const media = tweet.media.values()
-  const first = media.next()
+function tweetToEmbeds(tweet: VxTwitterResponse) {
+  const [first, ...media] = tweet.mediaURLs
 
-  const mainEmbed = newTwitterEmbed(first.value as TwitterMedia)
+  const mainEmbed = newTwitterEmbed(first)
     .setColor('#00acee')
     .setAuthor({
-      name: author.name,
-      iconURL: author.avatar,
-      url: `https://twitter.com/${author.username}`,
+      name: `${tweet.user_name} (@${tweet.user_screen_name})`,
+      url: `https://twitter.com/${tweet.user_name}`,
+      // @todo: add back user avatar
     })
-    .setDescription(tweet.content)
-    .addField('Likes', String(tweet.metrics.likes), true)
-    .addField('Retweets', String(tweet.metrics.retweets), true)
+    .setDescription(tweet.text.replace(/https?:\/\/t\.co\S+/, '').trim())
+    .addFields([
+      { name: 'Likes', value: String(tweet.likes), inline: true },
+      { name: 'Retweets', value: String(tweet.retweets), inline: true },
+    ])
     .setFooter({
       iconURL: 'https://abs.twimg.com/icons/apple-touch-icon-192x192.png',
       text: 'Twitter',
     })
-    .setTimestamp(tweet.createdAt)
+    .setTimestamp(new Date(tweet.date_epoch * 1000))
 
   const embeds = [mainEmbed]
-  for (const medium of media) {
-    embeds.push(newTwitterEmbed(medium))
+  for (const url of media) {
+    embeds.push(newTwitterEmbed(url))
   }
 
   return embeds
 }
 
+const waitTimeout = Number(process.env.WAIT_TIMEOUT ?? '0')
+
 async function isHandled(message: Message, expecting: number): Promise<boolean> {
   // discord could take time to get embed, wait longer
-  await sleep(1000)
+  await sleep(waitTimeout)
   const msg = await message.fetch()
 
   // always handle if some tweets are videos
@@ -71,15 +73,15 @@ export default async function handleTwitter(message: Message, wh: WebhookHandler
   let hasVideo = false
   for (const [link, subpath, tweetId] of matched) {
     logger.info('downloading tweet data...')
-    const { tweet, author } = await getTweetData(tweetId)
+    const tweet = await getTweetData(tweetId)
 
-    if (tweet.media.some(medium => medium.type === 'video')) {
+    if (tweet.media_extended.some(medium => medium.type === 'video')) {
       logger.info('got video tweet')
       hasVideo = true
       content = content.replace(link, `https://vxtwitter.com/${subpath}/${tweetId}`)
     } else {
       logger.info('got regular tweet')
-      responses.push({ embeds: tweetToEmbeds(tweet, author) })
+      responses.push({ embeds: tweetToEmbeds(tweet) })
       content = content.replace(link, `<${link}>`)
     }
   }

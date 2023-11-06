@@ -1,17 +1,8 @@
-import type { PublicMetrics, RawTwitterResponse, Tweet, TwitterMedia, TwitterResponse, TwitterUser } from './types'
-
-const twitterParams = new URLSearchParams({
-  'expansions': 'attachments.media_keys,author_id',
-  'tweet.fields': 'possibly_sensitive,public_metrics,created_at',
-  'media.fields': 'type,url',
-  'user.fields': 'id,profile_image_url',
-}).toString()
-
-class Cache extends Map<string, TwitterResponse> {
+class Cache extends Map<string, VxTwitterResponse> {
   public constructor(private ttl: number) {
     super()
   }
-  public set(key: string, value: TwitterResponse): this {
+  public set(key: string, value: VxTwitterResponse): this {
     super.set(key, value)
     setTimeout(() => {
       super.delete(key)
@@ -20,63 +11,42 @@ class Cache extends Map<string, TwitterResponse> {
   }
 }
 
-function parseRawResponse(body: RawTwitterResponse): TwitterResponse {
-  const { data, includes } = body
-  const metrics: PublicMetrics = {
-    retweets: data.public_metrics.retweet_count,
-    replies: data.public_metrics.reply_count,
-    likes: data.public_metrics.like_count,
-    quotes: data.public_metrics.quote_count,
-  }
-
-  const media: TwitterMedia[] = includes.media
-    ? includes.media.map(raw => ({
-      mediaKey: raw.media_key,
-      type: raw.type,
-      url: raw.url,
-    }))
-    : []
-
-  // remove unnecessary url
-  const sep = data.text.lastIndexOf(' ')
-  const content = sep === -1
-    ? ''
-    : data.text.slice(0, sep)
-
-  const tweet: Tweet = {
-    id: data.id,
-    authorId: data.author_id,
-    content,
-    createdAt: new Date(data.created_at),
-    isNsfw: data.possibly_sensitive,
-    metrics,
-    media,
-  }
-
-  const users = includes.users.map<TwitterUser>(raw => ({
-    id: raw.id,
-    name: raw.name,
-    username: raw.username,
-    avatar: raw.profile_image_url,
-  }))
-
-  const author = users.find(user => user.id === tweet.authorId)!
-
-  return { tweet, author, users, raw: body }
+interface Size {
+  height: number
+  width: number
 }
 
-async function fetchTweet(id: string, token: string) {
-  const input = `https://api.twitter.com/2/tweets/${id}?${twitterParams}`
-  const res = await fetch(input, {
-    headers: { Authorization: token },
-  })
-
-  const raw = await res.json() as RawTwitterResponse
-  return parseRawResponse(raw)
+export interface MediaExtended {
+  altText: string
+  duration_millis?: number
+  size: Size
+  thumbnail_url: string
+  type: 'image' | 'video'
+  url: string
 }
 
-export const newTwitterClient = (credentials: string): (id: string) => Promise<TwitterResponse> => {
-  const token = `Bearer ${credentials}`
+export interface VxTwitterResponse {
+  date: string
+  date_epoch: number
+  hashtags: string[]
+  likes: number
+  mediaURLs: string[]
+  media_extended: MediaExtended[]
+  replies: number
+  retweets: number
+  text: string
+  tweetID: string
+  tweetURL: string
+  user_name: string
+  user_screen_name: string
+}
+
+async function fetchTweet(id: string) {
+  const res = await fetch(`https://api.vxtwitter.com/Twitter/status/${id}`)
+  return res.json() as Promise<VxTwitterResponse>
+}
+
+export const newTwitterClient = (): (id: string) => Promise<VxTwitterResponse> => {
   const cache = new Cache(15 * 60)
 
   return async id => {
@@ -84,11 +54,11 @@ export const newTwitterClient = (credentials: string): (id: string) => Promise<T
       return cache.get(id)!
     }
 
-    const data = await fetchTweet(id, token)
+    const data = await fetchTweet(id)
     cache.set(id, data)
 
     return data
   }
 }
 
-export default newTwitterClient(process.env.TWITTER_TOKEN)
+export default newTwitterClient()
