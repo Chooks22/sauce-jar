@@ -17,7 +17,7 @@ function tweetToEmbeds(tweet: VxTwitterResponse) {
     .setColor('#00acee')
     .setAuthor({
       name: `${tweet.user_name} (@${tweet.user_screen_name})`,
-      url: `https://twitter.com/${tweet.user_name}`,
+      url: `https://twitter.com/${tweet.user_screen_name}`,
       // @todo: add back user avatar
     })
     .setDescription(tweet.text.replace(/https?:\/\/t\.co\S+/, '').trim())
