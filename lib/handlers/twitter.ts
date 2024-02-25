@@ -58,7 +58,7 @@ async function isHandled(message: Message, expecting: number): Promise<boolean> 
 
 export default async function handleTwitter(message: Message, wh: WebhookHandler, logger: Logger): Promise<void> {
   let content = message.content
-  const re = /https?:\/\/(?:mobile\.|www\.)?twitter\.com\/(\w{1,15}\/status)\/(\d+)(?:\?\S+)?/gi
+  const re = /https?:\/\/(?:(?:(?:mobile\.|www\.)?twitter\.com)|(?:x\.com))\/(\w{1,15}\/status)\/(\d+)(?:\?\S+)?/gi
   const matched = [...content.matchAll(re)]
 
   if (await isHandled(message, matched.length)) {
